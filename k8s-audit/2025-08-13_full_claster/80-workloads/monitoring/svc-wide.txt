@@ -1,0 +1,12 @@
+NAME                                             TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                         AGE   SELECTOR
+alertmanager-operated                            ClusterIP      None            <none>          9093/TCP,9094/TCP,9094/UDP      21d   app.kubernetes.io/name=alertmanager
+kube-prometheus-stack-alertmanager               ClusterIP      10.43.142.1     <none>          9093/TCP,8080/TCP               21d   alertmanager=kube-prometheus-stack-alertmanager,app.kubernetes.io/name=alertmanager
+kube-prometheus-stack-grafana                    LoadBalancer   10.43.157.218   192.168.88.14   3000:32357/TCP                  21d   app.kubernetes.io/instance=kube-prometheus-stack,app.kubernetes.io/name=grafana
+kube-prometheus-stack-kube-state-metrics         ClusterIP      10.43.63.168    <none>          8080/TCP                        21d   app.kubernetes.io/instance=kube-prometheus-stack,app.kubernetes.io/name=kube-state-metrics
+kube-prometheus-stack-operator                   ClusterIP      10.43.181.241   <none>          443/TCP                         21d   app=kube-prometheus-stack-operator,release=kube-prometheus-stack
+kube-prometheus-stack-prometheus                 LoadBalancer   10.43.42.120    192.168.88.14   9090:32178/TCP,8080:30138/TCP   21d   app.kubernetes.io/name=prometheus,operator.prometheus.io/name=kube-prometheus-stack-prometheus
+kube-prometheus-stack-prometheus-node-exporter   ClusterIP      10.43.28.104    <none>          9100/TCP                        21d   app.kubernetes.io/instance=kube-prometheus-stack,app.kubernetes.io/name=prometheus-node-exporter
+loki                                             LoadBalancer   10.43.171.127   192.168.88.14   3100:30187/TCP,9095:30497/TCP   21d   app.kubernetes.io/component=single-binary,app.kubernetes.io/instance=loki,app.kubernetes.io/name=loki
+loki-headless                                    ClusterIP      None            <none>          3100/TCP                        21d   app.kubernetes.io/instance=loki,app.kubernetes.io/name=loki
+loki-memberlist                                  ClusterIP      None            <none>          7946/TCP                        21d   app.kubernetes.io/instance=loki,app.kubernetes.io/name=loki,app.kubernetes.io/part-of=memberlist
+prometheus-operated                              ClusterIP      None            <none>          9090/TCP                        21d   app.kubernetes.io/name=prometheus

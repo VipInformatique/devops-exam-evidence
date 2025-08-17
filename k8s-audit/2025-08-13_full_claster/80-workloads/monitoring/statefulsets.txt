@@ -1,0 +1,4 @@
+NAME                                              READY   AGE   CONTAINERS                     IMAGES
+alertmanager-kube-prometheus-stack-alertmanager   1/1     21d   alertmanager,config-reloader   quay.io/prometheus/alertmanager:v0.28.1,quay.io/prometheus-operator/prometheus-config-reloader:v0.83.0
+loki                                              1/1     21d   loki,loki-sc-rules             docker.io/grafana/loki:3.5.2,kiwigrid/k8s-sidecar:1.30.7
+prometheus-kube-prometheus-stack-prometheus       1/1     21d   prometheus,config-reloader     quay.io/prometheus/prometheus:v3.5.0,quay.io/prometheus-operator/prometheus-config-reloader:v0.83.0

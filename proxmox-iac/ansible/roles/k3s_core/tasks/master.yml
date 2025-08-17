@@ -1,0 +1,110 @@
+---
+- name: Install pip3 and Kubernetes library on all masters
+  become: true
+  tags: [k3s, deps]
+  block:
+    - name: Ensure pip3 and setuptools are installed
+      apt:
+        name:
+          - python3-pip
+          - python3-setuptools
+          - python3-venv
+        state: present
+        update_cache: true
+
+    - name: Install kubernetes >= 24.2.0 (required by Ansible)
+      pip:
+        name: "kubernetes>=24.2.0"
+        executable: pip3
+        extra_args: "--break-system-packages"
+
+- name: Download installation script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /usr/local/bin/k3s_install.sh
+    mode: '0755'
+
+- name: Set flag to identify the first master node
+  ansible.builtin.set_fact:
+    is_primary: "{{ inventory_hostname == groups['k3s_masters'][0] }}"
+
+- name: Install first master (etcd)
+  ansible.builtin.shell: |
+    INSTALL_K3S_VERSION="{{ k3s_version }}" \
+    INSTALL_K3S_EXEC="server --cluster-init \
+      --tls-san {{ vip_address }} --disable traefik --disable servicelb" \
+    /usr/local/bin/k3s_install.sh
+  when: is_primary
+  args:
+    creates: /etc/systemd/system/k3s.service
+  notify: restart k3s
+
+- name: Copy kube-vip.yaml to master01
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/kube-vip.yaml"
+    dest: "/tmp/kube-vip.yaml"
+  when: is_primary
+
+- name: Apply kube-vip manifest on master01
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_custom_kubeconfig_path }}"
+    src: "/tmp/kube-vip.yaml"
+  when: is_primary
+
+- name: Wait until API server is available on VIP address
+  ansible.builtin.wait_for:
+    host: "{{ vip_address }}"
+    port: 6443
+    delay: 10         # wait 10s before the first attempt
+    timeout: 60       # wait up to 60s
+    msg: "Waiting for API server at {{ vip_address }}:6443"
+  run_once: true        # execute only once for the entire group
+  delegate_to: localhost # check from Ansible control node
+  become: false 
+
+- name: Read cluster token from the first master
+  ansible.builtin.command: cat /var/lib/rancher/k3s/server/node-token
+  register: _token
+  when: is_primary
+  changed_when: false
+
+- name: Share cluster token with all hosts
+  ansible.builtin.set_fact:
+    k3s_token: "{{ hostvars[groups['k3s_masters'][0]]._token.stdout }}"
+
+- name: Join remaining master nodes
+  ansible.builtin.shell: |
+    INSTALL_K3S_VERSION="{{ k3s_version }}" \
+    INSTALL_K3S_EXEC="server \
+      --server https://{{ vip_address }}:6443 \
+      --token {{ k3s_token }} --tls-san {{ vip_address }} \
+      --disable traefik --disable servicelb" \
+    /usr/local/bin/k3s_install.sh
+  when: not is_primary
+  args:
+    creates: /etc/systemd/system/k3s.service
+  notify: restart k3s
+
+- name: Slurp kubeconfig content from first master
+  ansible.builtin.slurp:
+    src: "{{ k3s_custom_kubeconfig_path }}" # reads /etc/rancher/k3s/k3s.yaml
+  register: kubeconfig_b64_content
+  when: is_primary
+
+# This block will run only on the first master, which is correct.
+# It ensures kubeconfig is fetched, modified, and stored locally.
+- name: Fix and save kubeconfig on control machine
+  when: is_primary
+  block:
+
+    - name: Decode and replace server address in kubeconfig
+      ansible.builtin.set_fact:
+        modified_kubeconfig: "{{ kubeconfig_b64_content['content'] | b64decode | replace('127.0.0.1', vip_address) }}"
+
+    - name: Save final kubeconfig to local file
+      ansible.builtin.copy:
+        content: "{{ modified_kubeconfig }}"
+        dest: "{{ k3s_kubeconfig }}" # saves to /home/test/.kube/config-k3s
+        mode: '0600'
+      delegate_to: localhost
+      become: false

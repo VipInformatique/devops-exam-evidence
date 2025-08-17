@@ -1,0 +1,13 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  entryPoints: ["web","websecure"]
+  routes:
+    - match: Host(`argocd.devistor.fr`) && HeadersRegexp(`CF-Connecting-IP`, `.+`)
+      kind: Rule
+      services:
+        - name: argocd-server
+          port: 80

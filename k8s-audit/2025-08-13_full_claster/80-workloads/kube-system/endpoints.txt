@@ -1,0 +1,9 @@
+NAME                                            ENDPOINTS                                                               AGE
+kube-dns                                        10.42.5.57:53,10.42.5.57:53,10.42.5.57:9153                             21d
+kube-prometheus-stack-coredns                   10.42.5.57:9153                                                         21d
+kube-prometheus-stack-kube-controller-manager   <none>                                                                  21d
+kube-prometheus-stack-kube-etcd                 <none>                                                                  21d
+kube-prometheus-stack-kube-proxy                <none>                                                                  21d
+kube-prometheus-stack-kube-scheduler            <none>                                                                  21d
+kube-prometheus-stack-kubelet                   192.168.88.6:10250,192.168.88.7:10250,192.168.88.8:10250 + 15 more...   21d
+metrics-server                                  10.42.1.11:10250                                                        21d

@@ -1,0 +1,562 @@
+Name:               k8s-master-01
+Roles:              control-plane,etcd,master
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=k3s
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=k8s-master-01
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=true
+                    node-role.kubernetes.io/etcd=true
+                    node-role.kubernetes.io/master=true
+                    node.kubernetes.io/instance-type=k3s
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.88.6
+                    etcd.k3s.cattle.io/local-snapshots-timestamp: 2025-08-13T12:00:05+02:00
+                    etcd.k3s.cattle.io/node-address: 192.168.88.6
+                    etcd.k3s.cattle.io/node-name: k8s-master-01-fec28e94
+                    flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"22:f7:73:32:01:45"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 192.168.88.6
+                    k3s.io/hostname: k8s-master-01
+                    k3s.io/internal-ip: 192.168.88.6
+                    k3s.io/node-args: ["server","--cluster-init","--tls-san","192.168.88.13","--disable","traefik","--disable","servicelb"]
+                    k3s.io/node-config-hash: QLJBYEK3BYUAGTSIY2N2PGPITF6GGJUY5WWX3RKQEXEPPR7OHBMA====
+                    k3s.io/node-env: {"K3S_DATA_DIR":"/var/lib/rancher/k3s/data/32fc16204c376447d7986a0461128d0c30b326f71cf584528bcded99dde3f1aa"}
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Tue, 22 Jul 2025 23:21:54 +0200
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  k8s-master-01
+  AcquireTime:     <unset>
+  RenewTime:       Wed, 13 Aug 2025 17:28:02 +0200
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  EtcdIsVoter      True    Wed, 13 Aug 2025 17:25:29 +0200   Fri, 25 Jul 2025 22:30:19 +0200   MemberNotLearner             Node is a voting member of the etcd cluster
+  MemoryPressure   False   Wed, 13 Aug 2025 17:24:07 +0200   Fri, 25 Jul 2025 22:30:18 +0200   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Wed, 13 Aug 2025 17:24:07 +0200   Fri, 25 Jul 2025 22:30:18 +0200   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Wed, 13 Aug 2025 17:24:07 +0200   Fri, 25 Jul 2025 22:30:18 +0200   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Wed, 13 Aug 2025 17:24:07 +0200   Fri, 25 Jul 2025 22:30:18 +0200   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.88.6
+  Hostname:    k8s-master-01
+Capacity:
+  cpu:                2
+  ephemeral-storage:  31861548Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             6067384Ki
+  pods:               110
+Allocatable:
+  cpu:                2
+  ephemeral-storage:  30994913871
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             6067384Ki
+  pods:               110
+System Info:
+  Machine ID:                 5205945a1b0342ba9b64fc2afebbf74c
+  System UUID:                abe4a69e-6f9e-4820-a38b-4b146dc4c15f
+  Boot ID:                    007faa28-2e9c-411b-afaa-3eb381171c0c
+  Kernel Version:             6.1.0-37-amd64
+  OS Image:                   Debian GNU/Linux 12 (bookworm)
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.15-k3s1
+  Kubelet Version:            v1.30.1+k3s1
+  Kube-Proxy Version:         v1.30.1+k3s1
+PodCIDR:                      10.42.0.0/24
+PodCIDRs:                     10.42.0.0/24
+ProviderID:                   k3s://k8s-master-01
+Non-terminated Pods:          (7 in total)
+  Namespace                   Name                                                    CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                                    ------------  ----------  ---------------  -------------  ---
+  argocd                      argocd-notifications-controller-7c4d6fd566-5769k        0 (0%)        0 (0%)      0 (0%)           0 (0%)         15d
+  argocd                      argocd-repo-server-7464fd89f4-k5d5b                     0 (0%)        0 (0%)      0 (0%)           0 (0%)         15d
+  argocd                      argocd-server-69cdbf9f69-5pdxb                          0 (0%)        0 (0%)      0 (0%)           0 (0%)         5d19h
+  kube-system                 kube-vip-kj9j9                                          0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  metallb-system              metallb-speaker-mn5s6                                   0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  monitoring                  kube-prometheus-stack-prometheus-node-exporter-27q9p    0 (0%)        0 (0%)      0 (0%)           0 (0%)         17d
+  monitoring                  promtail-kxgp6                                          100m (5%)     300m (15%)  128Mi (2%)       256Mi (4%)     2d17h
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                100m (5%)   300m (15%)
+  memory             128Mi (2%)  256Mi (4%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-1Gi      0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+Events:              <none>
+
+
+Name:               k8s-master-02
+Roles:              control-plane,etcd,master
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=k3s
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=k8s-master-02
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=true
+                    node-role.kubernetes.io/etcd=true
+                    node-role.kubernetes.io/master=true
+                    node.kubernetes.io/instance-type=k3s
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.88.7
+                    etcd.k3s.cattle.io/local-snapshots-timestamp: 2025-08-13T12:00:03+02:00
+                    etcd.k3s.cattle.io/node-address: 192.168.88.7
+                    etcd.k3s.cattle.io/node-name: k8s-master-02-b4ecfe67
+                    flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"ea:e4:00:ae:d6:0f"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 192.168.88.7
+                    k3s.io/hostname: k8s-master-02
+                    k3s.io/internal-ip: 192.168.88.7
+                    k3s.io/node-args:
+                      ["server","--server","https://192.168.88.13:6443","--token","********","--tls-san","192.168.88.13","--disable","traefik","--disable","serv...
+                    k3s.io/node-config-hash: NIAQNMMRL75WDOWWN7C3BZDRIRB4H6TL3ZVPNVF2XBBIRDMHU2YQ====
+                    k3s.io/node-env: {"K3S_DATA_DIR":"/var/lib/rancher/k3s/data/32fc16204c376447d7986a0461128d0c30b326f71cf584528bcded99dde3f1aa"}
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Wed, 23 Jul 2025 00:28:56 +0200
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  k8s-master-02
+  AcquireTime:     <unset>
+  RenewTime:       Wed, 13 Aug 2025 17:28:00 +0200
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  EtcdIsVoter      True    Wed, 13 Aug 2025 17:27:14 +0200   Wed, 13 Aug 2025 11:12:14 +0200   MemberNotLearner             Node is a voting member of the etcd cluster
+  MemoryPressure   False   Wed, 13 Aug 2025 17:24:44 +0200   Wed, 13 Aug 2025 11:12:15 +0200   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Wed, 13 Aug 2025 17:24:44 +0200   Wed, 13 Aug 2025 11:12:15 +0200   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Wed, 13 Aug 2025 17:24:44 +0200   Wed, 13 Aug 2025 11:12:15 +0200   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Wed, 13 Aug 2025 17:24:44 +0200   Wed, 13 Aug 2025 11:12:15 +0200   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.88.7
+  Hostname:    k8s-master-02
+Capacity:
+  cpu:                2
+  ephemeral-storage:  31861548Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009144Ki
+  pods:               110
+Allocatable:
+  cpu:                2
+  ephemeral-storage:  30994913871
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009144Ki
+  pods:               110
+System Info:
+  Machine ID:                 5205945a1b0342ba9b64fc2afebbf74c
+  System UUID:                c4aee4fd-d855-4326-9349-d34144356ca5
+  Boot ID:                    1d6305a1-f303-4efb-8692-328aa3b307ce
+  Kernel Version:             6.1.0-37-amd64
+  OS Image:                   Debian GNU/Linux 12 (bookworm)
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.15-k3s1
+  Kubelet Version:            v1.30.1+k3s1
+  Kube-Proxy Version:         v1.30.1+k3s1
+PodCIDR:                      10.42.4.0/24
+PodCIDRs:                     10.42.4.0/24
+ProviderID:                   k3s://k8s-master-02
+Non-terminated Pods:          (5 in total)
+  Namespace                   Name                                                    CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                                    ------------  ----------  ---------------  -------------  ---
+  argocd                      argocd-application-controller-0                         0 (0%)        0 (0%)      0 (0%)           0 (0%)         5d18h
+  kube-system                 kube-vip-l4fxd                                          0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  metallb-system              metallb-speaker-6rtjf                                   0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  monitoring                  kube-prometheus-stack-prometheus-node-exporter-c9wcb    0 (0%)        0 (0%)      0 (0%)           0 (0%)         17d
+  monitoring                  promtail-nzjpj                                          100m (5%)     300m (15%)  128Mi (3%)       256Mi (6%)     2d17h
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                100m (5%)   300m (15%)
+  memory             128Mi (3%)  256Mi (6%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-1Gi      0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+Events:              <none>
+
+
+Name:               k8s-master-03
+Roles:              control-plane,etcd,master
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=k3s
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=k8s-master-03
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=true
+                    node-role.kubernetes.io/etcd=true
+                    node-role.kubernetes.io/master=true
+                    node.kubernetes.io/instance-type=k3s
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.88.8
+                    etcd.k3s.cattle.io/local-snapshots-timestamp: 2025-08-13T12:00:06+02:00
+                    etcd.k3s.cattle.io/node-address: 192.168.88.8
+                    etcd.k3s.cattle.io/node-name: k8s-master-03-24b4b069
+                    flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"aa:7e:f5:c0:1c:1c"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 192.168.88.8
+                    k3s.io/hostname: k8s-master-03
+                    k3s.io/internal-ip: 192.168.88.8
+                    k3s.io/node-args:
+                      ["server","--server","https://192.168.88.13:6443","--token","********","--tls-san","192.168.88.13","--disable","traefik","--disable","serv...
+                    k3s.io/node-config-hash: NIAQNMMRL75WDOWWN7C3BZDRIRB4H6TL3ZVPNVF2XBBIRDMHU2YQ====
+                    k3s.io/node-env: {"K3S_DATA_DIR":"/var/lib/rancher/k3s/data/32fc16204c376447d7986a0461128d0c30b326f71cf584528bcded99dde3f1aa"}
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Wed, 23 Jul 2025 00:29:01 +0200
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  k8s-master-03
+  AcquireTime:     <unset>
+  RenewTime:       Wed, 13 Aug 2025 17:28:04 +0200
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  EtcdIsVoter      True    Wed, 13 Aug 2025 17:24:44 +0200   Thu, 24 Jul 2025 14:01:09 +0200   MemberNotLearner             Node is a voting member of the etcd cluster
+  MemoryPressure   False   Wed, 13 Aug 2025 17:26:09 +0200   Thu, 24 Jul 2025 14:01:07 +0200   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Wed, 13 Aug 2025 17:26:09 +0200   Thu, 24 Jul 2025 14:01:07 +0200   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Wed, 13 Aug 2025 17:26:09 +0200   Thu, 24 Jul 2025 14:01:07 +0200   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Wed, 13 Aug 2025 17:26:09 +0200   Thu, 24 Jul 2025 14:01:07 +0200   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.88.8
+  Hostname:    k8s-master-03
+Capacity:
+  cpu:                2
+  ephemeral-storage:  31861548Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009144Ki
+  pods:               110
+Allocatable:
+  cpu:                2
+  ephemeral-storage:  30994913871
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009144Ki
+  pods:               110
+System Info:
+  Machine ID:                 5205945a1b0342ba9b64fc2afebbf74c
+  System UUID:                f7c0004b-e5e3-429e-8ec1-cf708bb3912b
+  Boot ID:                    2fb9d212-9557-4068-87f6-a9d4c237a5e5
+  Kernel Version:             6.1.0-37-amd64
+  OS Image:                   Debian GNU/Linux 12 (bookworm)
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.15-k3s1
+  Kubelet Version:            v1.30.1+k3s1
+  Kube-Proxy Version:         v1.30.1+k3s1
+PodCIDR:                      10.42.5.0/24
+PodCIDRs:                     10.42.5.0/24
+ProviderID:                   k3s://k8s-master-03
+Non-terminated Pods:          (7 in total)
+  Namespace                   Name                                                    CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                                    ------------  ----------  ---------------  -------------  ---
+  argocd                      argocd-redis-7ddc494d94-d7rpx                           0 (0%)        0 (0%)      0 (0%)           0 (0%)         15d
+  kube-system                 coredns-ffdddc449-cm8qj                                 100m (5%)     0 (0%)      70Mi (1%)        170Mi (4%)     19d
+  kube-system                 kube-vip-46lgh                                          0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  metallb-system              metallb-controller-b489676fc-6bzw2                      0 (0%)        0 (0%)      0 (0%)           0 (0%)         15d
+  metallb-system              metallb-speaker-45kks                                   0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  monitoring                  kube-prometheus-stack-prometheus-node-exporter-vgkb7    0 (0%)        0 (0%)      0 (0%)           0 (0%)         17d
+  monitoring                  promtail-jsc9g                                          100m (5%)     300m (15%)  128Mi (3%)       256Mi (6%)     2d17h
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                200m (10%)  300m (15%)
+  memory             198Mi (5%)  426Mi (10%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-1Gi      0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+Events:              <none>
+
+
+Name:               k8s-worker-01
+Roles:              <none>
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=k3s
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=k8s-worker-01
+                    kubernetes.io/os=linux
+                    node.kubernetes.io/instance-type=k3s
+                    role=worker
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.88.9
+                    flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"46:ef:51:6b:a0:11"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 192.168.88.9
+                    k3s.io/hostname: k8s-worker-01
+                    k3s.io/internal-ip: 192.168.88.9
+                    k3s.io/node-args: ["agent"]
+                    k3s.io/node-config-hash: 756YQUGINIWAGEWUIULYYUF7QXU67LMEG44MOTOS4MWFWLDZJHFA====
+                    k3s.io/node-env:
+                      {"K3S_DATA_DIR":"/var/lib/rancher/k3s/data/32fc16204c376447d7986a0461128d0c30b326f71cf584528bcded99dde3f1aa","K3S_TOKEN":"********","K3S_U...
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Wed, 23 Jul 2025 00:28:16 +0200
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  k8s-worker-01
+  AcquireTime:     <unset>
+  RenewTime:       Wed, 13 Aug 2025 17:27:58 +0200
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Wed, 13 Aug 2025 17:27:31 +0200   Wed, 13 Aug 2025 11:09:43 +0200   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Wed, 13 Aug 2025 17:27:31 +0200   Wed, 13 Aug 2025 11:09:43 +0200   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Wed, 13 Aug 2025 17:27:31 +0200   Wed, 13 Aug 2025 11:09:43 +0200   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Wed, 13 Aug 2025 17:27:31 +0200   Wed, 13 Aug 2025 11:09:43 +0200   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.88.9
+  Hostname:    k8s-worker-01
+Capacity:
+  cpu:                2
+  ephemeral-storage:  31861548Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009144Ki
+  pods:               110
+Allocatable:
+  cpu:                2
+  ephemeral-storage:  30994913871
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009144Ki
+  pods:               110
+System Info:
+  Machine ID:                 5205945a1b0342ba9b64fc2afebbf74c
+  System UUID:                54fb1194-2c61-4957-bf42-e14430a6021a
+  Boot ID:                    2985da21-7d10-4f43-8253-fd334399730f
+  Kernel Version:             6.1.0-37-amd64
+  OS Image:                   Debian GNU/Linux 12 (bookworm)
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.15-k3s1
+  Kubelet Version:            v1.30.1+k3s1
+  Kube-Proxy Version:         v1.30.1+k3s1
+PodCIDR:                      10.42.1.0/24
+PodCIDRs:                     10.42.1.0/24
+ProviderID:                   k3s://k8s-worker-01
+Non-terminated Pods:          (14 in total)
+  Namespace                   Name                                                        CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                                        ------------  ----------  ---------------  -------------  ---
+  cloudflare                  cloudflared-756df785cf-wn2nw                                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  default                     nfs-subdir-external-provisioner-8547467568-6qz2j            0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  dev                         devistor-app-dev-7b8c46cd98-h5nkk                           100m (5%)     500m (25%)  512Mi (13%)      1Gi (26%)      2d8h
+  kube-system                 metrics-server-557ff575fb-tbt9p                             100m (5%)     0 (0%)      70Mi (1%)        0 (0%)         20d
+  metallb-system              metallb-speaker-28m56                                       0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  monitoring                  kube-prometheus-stack-grafana-f97dbccb5-vdxgk               100m (5%)     500m (25%)  256Mi (6%)       512Mi (13%)    6d6h
+  monitoring                  kube-prometheus-stack-kube-state-metrics-667ff8d5b-54vxx    0 (0%)        0 (0%)      0 (0%)           0 (0%)         6d6h
+  monitoring                  kube-prometheus-stack-operator-6cd649-nzxbm                 0 (0%)        0 (0%)      0 (0%)           0 (0%)         6d6h
+  monitoring                  kube-prometheus-stack-prometheus-node-exporter-p7g28        0 (0%)        0 (0%)      0 (0%)           0 (0%)         17d
+  monitoring                  loki-0                                                      200m (10%)    1 (50%)     512Mi (13%)      2Gi (52%)      2d17h
+  monitoring                  promtail-v6pqr                                              100m (5%)     300m (15%)  128Mi (3%)       256Mi (6%)     2d17h
+  traefik                     traefik-75595ffcf7-5xrcg                                    0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  traefik                     traefik-75595ffcf7-shxn6                                    0 (0%)        0 (0%)      0 (0%)           0 (0%)         6d6h
+  velero                      velero-869b896886-5g8hf                                     500m (25%)    1 (50%)     128Mi (3%)       512Mi (13%)    17d
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests      Limits
+  --------           --------      ------
+  cpu                1100m (55%)   3300m (165%)
+  memory             1606Mi (41%)  4352Mi (111%)
+  ephemeral-storage  0 (0%)        0 (0%)
+  hugepages-1Gi      0 (0%)        0 (0%)
+  hugepages-2Mi      0 (0%)        0 (0%)
+Events:              <none>
+
+
+Name:               k8s-worker-02
+Roles:              <none>
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=k3s
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=k8s-worker-02
+                    kubernetes.io/os=linux
+                    node.kubernetes.io/instance-type=k3s
+                    role=worker
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.88.10
+                    flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"ee:f4:27:0c:bc:1f"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 192.168.88.10
+                    k3s.io/hostname: k8s-worker-02
+                    k3s.io/internal-ip: 192.168.88.10
+                    k3s.io/node-args: ["agent"]
+                    k3s.io/node-config-hash: 756YQUGINIWAGEWUIULYYUF7QXU67LMEG44MOTOS4MWFWLDZJHFA====
+                    k3s.io/node-env:
+                      {"K3S_DATA_DIR":"/var/lib/rancher/k3s/data/32fc16204c376447d7986a0461128d0c30b326f71cf584528bcded99dde3f1aa","K3S_TOKEN":"********","K3S_U...
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Wed, 23 Jul 2025 00:28:16 +0200
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  k8s-worker-02
+  AcquireTime:     <unset>
+  RenewTime:       Wed, 13 Aug 2025 17:27:59 +0200
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Wed, 13 Aug 2025 17:25:03 +0200   Wed, 13 Aug 2025 11:12:35 +0200   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Wed, 13 Aug 2025 17:25:03 +0200   Wed, 13 Aug 2025 11:12:35 +0200   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Wed, 13 Aug 2025 17:25:03 +0200   Wed, 13 Aug 2025 11:12:35 +0200   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Wed, 13 Aug 2025 17:25:03 +0200   Wed, 13 Aug 2025 11:12:35 +0200   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.88.10
+  Hostname:    k8s-worker-02
+Capacity:
+  cpu:                2
+  ephemeral-storage:  31861548Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009152Ki
+  pods:               110
+Allocatable:
+  cpu:                2
+  ephemeral-storage:  30994913871
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009152Ki
+  pods:               110
+System Info:
+  Machine ID:                 5205945a1b0342ba9b64fc2afebbf74c
+  System UUID:                a34d70ab-7ffc-453b-9860-1d74314c5f70
+  Boot ID:                    a24dcac9-ff58-4242-9c30-5f4139d439bf
+  Kernel Version:             6.1.0-37-amd64
+  OS Image:                   Debian GNU/Linux 12 (bookworm)
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.15-k3s1
+  Kubelet Version:            v1.30.1+k3s1
+  Kube-Proxy Version:         v1.30.1+k3s1
+PodCIDR:                      10.42.3.0/24
+PodCIDRs:                     10.42.3.0/24
+ProviderID:                   k3s://k8s-worker-02
+Non-terminated Pods:          (6 in total)
+  Namespace                   Name                                                    CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                                    ------------  ----------  ---------------  -------------  ---
+  dev                         devistor-app-dev-7b8c46cd98-8lnpq                       100m (5%)     500m (25%)  512Mi (13%)      1Gi (26%)      2d8h
+  metallb-system              metallb-speaker-mw55c                                   0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  monitoring                  alertmanager-kube-prometheus-stack-alertmanager-0       0 (0%)        0 (0%)      200Mi (5%)       0 (0%)         5d18h
+  monitoring                  kube-prometheus-stack-prometheus-node-exporter-xmlf6    0 (0%)        0 (0%)      0 (0%)           0 (0%)         17d
+  monitoring                  promtail-hpz65                                          100m (5%)     300m (15%)  128Mi (3%)       256Mi (6%)     2d17h
+  prod                        devistor-app-prod-5965d8db54-wf495                      200m (10%)    1 (50%)     1Gi (26%)        2Gi (52%)      22h
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests      Limits
+  --------           --------      ------
+  cpu                400m (20%)    1800m (90%)
+  memory             1864Mi (47%)  3328Mi (85%)
+  ephemeral-storage  0 (0%)        0 (0%)
+  hugepages-1Gi      0 (0%)        0 (0%)
+  hugepages-2Mi      0 (0%)        0 (0%)
+Events:              <none>
+
+
+Name:               k8s-worker-03
+Roles:              <none>
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/instance-type=k3s
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=k8s-worker-03
+                    kubernetes.io/os=linux
+                    node.kubernetes.io/instance-type=k3s
+                    role=worker
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.88.11
+                    flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"ea:ae:bb:6f:d0:f2"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 192.168.88.11
+                    k3s.io/hostname: k8s-worker-03
+                    k3s.io/internal-ip: 192.168.88.11
+                    k3s.io/node-args: ["agent"]
+                    k3s.io/node-config-hash: 756YQUGINIWAGEWUIULYYUF7QXU67LMEG44MOTOS4MWFWLDZJHFA====
+                    k3s.io/node-env:
+                      {"K3S_DATA_DIR":"/var/lib/rancher/k3s/data/32fc16204c376447d7986a0461128d0c30b326f71cf584528bcded99dde3f1aa","K3S_TOKEN":"********","K3S_U...
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Wed, 23 Jul 2025 00:28:16 +0200
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  k8s-worker-03
+  AcquireTime:     <unset>
+  RenewTime:       Wed, 13 Aug 2025 17:27:56 +0200
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Wed, 13 Aug 2025 17:26:15 +0200   Tue, 12 Aug 2025 00:42:00 +0200   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Wed, 13 Aug 2025 17:26:15 +0200   Tue, 12 Aug 2025 00:42:00 +0200   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Wed, 13 Aug 2025 17:26:15 +0200   Tue, 12 Aug 2025 00:42:00 +0200   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Wed, 13 Aug 2025 17:26:15 +0200   Tue, 12 Aug 2025 00:42:00 +0200   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.88.11
+  Hostname:    k8s-worker-03
+Capacity:
+  cpu:                2
+  ephemeral-storage:  31861548Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009144Ki
+  pods:               110
+Allocatable:
+  cpu:                2
+  ephemeral-storage:  30994913871
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  memory:             4009144Ki
+  pods:               110
+System Info:
+  Machine ID:                 5205945a1b0342ba9b64fc2afebbf74c
+  System UUID:                f21c8be1-4ebd-4af7-aee1-afe49cd86867
+  Boot ID:                    7ff79a5f-d69f-4e99-8289-4d5dcc60b990
+  Kernel Version:             6.1.0-37-amd64
+  OS Image:                   Debian GNU/Linux 12 (bookworm)
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  containerd://1.7.15-k3s1
+  Kubelet Version:            v1.30.1+k3s1
+  Kube-Proxy Version:         v1.30.1+k3s1
+PodCIDR:                      10.42.2.0/24
+PodCIDRs:                     10.42.2.0/24
+ProviderID:                   k3s://k8s-worker-03
+Non-terminated Pods:          (10 in total)
+  Namespace                   Name                                                    CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                                    ------------  ----------  ---------------  -------------  ---
+  argocd                      argocd-applicationset-controller-95fd8b4fc-hdmcb        0 (0%)        0 (0%)      0 (0%)           0 (0%)         15d
+  argocd                      argocd-dex-server-64879655b-dqt7v                       0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  cloudflare                  cloudflared-756df785cf-tnw2f                            0 (0%)        0 (0%)      0 (0%)           0 (0%)         6d6h
+  kube-system                 local-path-provisioner-75bb9ff978-2szfv                 0 (0%)        0 (0%)      0 (0%)           0 (0%)         20d
+  metallb-system              metallb-speaker-vbqq2                                   0 (0%)        0 (0%)      0 (0%)           0 (0%)         21d
+  monitoring                  kube-prometheus-stack-prometheus-node-exporter-cfqkf    0 (0%)        0 (0%)      0 (0%)           0 (0%)         17d
+  monitoring                  prometheus-kube-prometheus-stack-prometheus-0           500m (25%)    2 (100%)    1Gi (26%)        4Gi (104%)     12d
+  monitoring                  promtail-65l5m                                          100m (5%)     300m (15%)  128Mi (3%)       256Mi (6%)     2d17h
+  prod                        devistor-app-prod-5965d8db54-pjkff                      200m (10%)    1 (50%)     1Gi (26%)        2Gi (52%)      22h
+  traefik                     traefik-75595ffcf7-hvwxg                                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests      Limits
+  --------           --------      ------
+  cpu                800m (40%)    3300m (165%)
+  memory             2176Mi (55%)  6400Mi (163%)
+  ephemeral-storage  0 (0%)        0 (0%)
+  hugepages-1Gi      0 (0%)        0 (0%)
+  hugepages-2Mi      0 (0%)        0 (0%)
+Events:              <none>

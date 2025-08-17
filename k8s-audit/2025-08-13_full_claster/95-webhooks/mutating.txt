@@ -1,0 +1,2 @@
+NAME                              WEBHOOKS   AGE
+kube-prometheus-stack-admission   1          21d

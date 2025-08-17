@@ -1,0 +1,2 @@
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS     IMAGES                                 SELECTOR
+devistor-app-dev   2/2     2            2           21d   devistor-dev   vipinformatique/devistor:dev-7e70ce8   app=devistor-dev

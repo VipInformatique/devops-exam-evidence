@@ -1,0 +1,29 @@
+---
+# tasks file for proxmox_cluster
+# Ten skrypt w bezpieczny sposób tworzy klaster lub weryfikuje jego istnienie.
+
+- name: Check Proxmox cluster status on all nodes
+  ansible.builtin.command: pvecm status
+  register: cluster_status
+  changed_when: false
+  ignore_errors: true
+  tags:
+    - proxmox_cluster
+
+- name: Initialize the cluster on the primary node if needed
+  ansible.builtin.command: pvecm create pve-ha-cluster
+  when:
+    - inventory_hostname == proxmox_primary_node
+    - "'no cluster configuration' in cluster_status.stderr"
+  run_once: true
+  tags:
+    - proxmox_cluster
+
+- name: Join secondary nodes to the cluster if they are not members
+  
+  ansible.builtin.command: pvecm add {{ proxmox_primary_node }}
+  when:
+    - inventory_hostname != proxmox_primary_node
+    - "'no cluster configuration' in cluster_status.stderr"
+  tags:
+    - proxmox_cluster

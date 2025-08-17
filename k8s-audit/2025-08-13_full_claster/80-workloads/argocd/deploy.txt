@@ -1,0 +1,7 @@
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS                  IMAGES                                             SELECTOR
+argocd-applicationset-controller   1/1     1            1           21d   applicationset-controller   quay.io/argoproj/argocd:v2.10.7                    app.kubernetes.io/instance=argocd,app.kubernetes.io/name=argocd-applicationset-controller
+argocd-dex-server                  1/1     1            1           21d   dex-server                  ghcr.io/dexidp/dex:v2.38.0                         app.kubernetes.io/instance=argocd,app.kubernetes.io/name=argocd-dex-server
+argocd-notifications-controller    1/1     1            1           21d   notifications-controller    quay.io/argoproj/argocd:v2.10.7                    app.kubernetes.io/instance=argocd,app.kubernetes.io/name=argocd-notifications-controller
+argocd-redis                       1/1     1            1           21d   redis                       public.ecr.aws/docker/library/redis:7.2.4-alpine   app.kubernetes.io/name=argocd-redis
+argocd-repo-server                 1/1     1            1           21d   repo-server                 quay.io/argoproj/argocd:v2.10.7                    app.kubernetes.io/instance=argocd,app.kubernetes.io/name=argocd-repo-server
+argocd-server                      1/1     1            1           21d   server                      quay.io/argoproj/argocd:v2.10.7                    app.kubernetes.io/instance=argocd,app.kubernetes.io/name=argocd-server

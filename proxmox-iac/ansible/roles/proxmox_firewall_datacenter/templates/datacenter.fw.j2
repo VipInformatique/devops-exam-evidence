@@ -1,0 +1,54 @@
+[OPTIONS]
+enable: 1
+policy_in: DROP
+policy_out: ACCEPT
+
+[IPSET vpn]
+10.10.10.0/24
+[IPSET mgmt]
+192.168.88.0/24
+[IPSET cluster]
+192.168.100.0/24
+[IPSET synology]
+192.168.88.5
+
+[RULES]
+# ICMP
+IN ACCEPT -p icmp
+
+# SSH
+IN ACCEPT -source +cluster -p tcp -dport 22 
+IN ACCEPT -source +vpn     -p tcp -dport 22
+IN ACCEPT -source +mgmt    -p tcp -dport 22
+IN DROP                    -p tcp -dport 22
+
+# Proxmox API/GUI
+IN ACCEPT -source +cluster -p tcp -dport 8006
+IN ACCEPT -source +vpn     -p tcp -dport 8006
+IN ACCEPT -source +mgmt    -p tcp -dport 8006
+IN DROP                    -p tcp -dport 8006
+
+# Corosync & wewnętrzne API
+IN ACCEPT -source +cluster -p udp -dport 5405
+IN ACCEPT -source +cluster -p tcp -dport 85:86
+
+# K3s
+IN ACCEPT -source +cluster -p tcp -dport 6443
+IN ACCEPT -source +vpn     -p tcp -dport 6443
+IN DROP                    -p tcp -dport 6443
+IN ACCEPT -source +cluster -p udp -dport 8472
+IN ACCEPT -source +cluster -p tcp -dport 10250
+IN ACCEPT -source +cluster -p tcp -dport 30000:32767
+IN ACCEPT -source +cluster -p udp -dport 30000:32767
+IN ACCEPT -source +cluster -p tcp -dport 9100
+
+# Live-migration
+IN ACCEPT -source +cluster -p tcp -dport 60000:60050
+
+# NFS
+IN ACCEPT -source +synology -p tcp -dport 2049
+IN ACCEPT -source +synology -p udp -dport 2049
+IN ACCEPT -source +synology -p tcp -dport 111
+IN ACCEPT -source +synology -p udp -dport 111
+IN ACCEPT -source +synology -p tcp -dport 32765:32768
+IN ACCEPT -source +synology -p udp -dport 32765:32768

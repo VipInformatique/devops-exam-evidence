@@ -1,0 +1,8 @@
+NAME                                 READY   STATUS    RESTARTS         AGE   IP              NODE            NOMINATED NODE   READINESS GATES
+metallb-controller-b489676fc-6bzw2   1/1     Running   0                15d   10.42.5.143     k8s-master-03   <none>           <none>
+metallb-speaker-28m56                4/4     Running   9 (18d ago)      21d   192.168.88.9    k8s-worker-01   <none>           <none>
+metallb-speaker-45kks                4/4     Running   15 (18d ago)     21d   192.168.88.8    k8s-master-03   <none>           <none>
+metallb-speaker-6rtjf                4/4     Running   45 (6h16m ago)   21d   192.168.88.7    k8s-master-02   <none>           <none>
+metallb-speaker-mn5s6                4/4     Running   14 (18d ago)     21d   192.168.88.6    k8s-master-01   <none>           <none>
+metallb-speaker-mw55c                4/4     Running   36 (6h15m ago)   21d   192.168.88.10   k8s-worker-02   <none>           <none>
+metallb-speaker-vbqq2                4/4     Running   6 (11d ago)      21d   192.168.88.11   k8s-worker-03   <none>           <none>

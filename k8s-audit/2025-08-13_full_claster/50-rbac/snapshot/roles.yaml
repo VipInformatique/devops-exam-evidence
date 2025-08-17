@@ -1,0 +1,831 @@
+apiVersion: v1
+items:
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: argocd
+      meta.helm.sh/release-namespace: argocd
+    creationTimestamp: "2025-07-22T22:42:09Z"
+    labels:
+      app.kubernetes.io/component: application-controller
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: argocd-application-controller
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v2.10.7
+      helm.sh/chart: argo-cd-6.7.14
+    name: argocd-application-controller
+    namespace: argocd
+    resourceVersion: "17049"
+    uid: 940f29d1-8185-4780-a329-08ff26bbb71c
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    - configmaps
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - applications
+    - appprojects
+    verbs:
+    - create
+    - get
+    - list
+    - watch
+    - update
+    - patch
+    - delete
+  - apiGroups:
+    - ""
+    resources:
+    - events
+    verbs:
+    - create
+    - list
+  - apiGroups:
+    - apps
+    resources:
+    - deployments
+    verbs:
+    - get
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: argocd
+      meta.helm.sh/release-namespace: argocd
+    creationTimestamp: "2025-07-22T22:42:09Z"
+    labels:
+      app.kubernetes.io/component: applicationset-controller
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: argocd-applicationset-controller
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v2.10.7
+      helm.sh/chart: argo-cd-6.7.14
+    name: argocd-applicationset-controller
+    namespace: argocd
+    resourceVersion: "17050"
+    uid: 94358719-746a-45c3-ad0a-b3d71ca04dfc
+  rules:
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - applications
+    - applicationsets
+    - applicationsets/finalizers
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - applicationsets/status
+    verbs:
+    - get
+    - patch
+    - update
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - appprojects
+    verbs:
+    - get
+  - apiGroups:
+    - ""
+    resources:
+    - events
+    verbs:
+    - create
+    - get
+    - list
+    - patch
+    - watch
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - create
+    - update
+    - delete
+    - get
+    - list
+    - patch
+    - watch
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - apps
+    - extensions
+    resources:
+    - deployments
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - coordination.k8s.io
+    resources:
+    - leases
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: argocd
+      meta.helm.sh/release-namespace: argocd
+    creationTimestamp: "2025-07-22T22:42:09Z"
+    labels:
+      app.kubernetes.io/component: dex-server
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: argocd-dex-server
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v2.10.7
+      helm.sh/chart: argo-cd-6.7.14
+    name: argocd-dex-server
+    namespace: argocd
+    resourceVersion: "17046"
+    uid: 39e0f7c4-85a0-448d-8364-8779a184bbe9
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    - configmaps
+    verbs:
+    - get
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: argocd
+      meta.helm.sh/release-namespace: argocd
+    creationTimestamp: "2025-07-22T22:42:09Z"
+    labels:
+      app.kubernetes.io/component: notifications-controller
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: argocd-notifications-controller
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v2.10.7
+      helm.sh/chart: argo-cd-6.7.14
+    name: argocd-notifications-controller
+    namespace: argocd
+    resourceVersion: "17045"
+    uid: 3ecd6ddd-ba66-4ca2-8717-95f6ab056e90
+  rules:
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - applications
+    - appprojects
+    verbs:
+    - get
+    - list
+    - watch
+    - update
+    - patch
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    - secrets
+    verbs:
+    - list
+    - watch
+  - apiGroups:
+    - ""
+    resourceNames:
+    - argocd-notifications-cm
+    resources:
+    - configmaps
+    verbs:
+    - get
+  - apiGroups:
+    - ""
+    resourceNames:
+    - argocd-notifications-secret
+    resources:
+    - secrets
+    verbs:
+    - get
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: argocd
+      meta.helm.sh/release-namespace: argocd
+    creationTimestamp: "2025-07-22T22:42:09Z"
+    labels:
+      app.kubernetes.io/component: repo-server
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: argocd-repo-server
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v2.10.7
+      helm.sh/chart: argo-cd-6.7.14
+    name: argocd-repo-server
+    namespace: argocd
+    resourceVersion: "17048"
+    uid: 6ae71677-98c3-490a-b687-3df4f60e00da
+  rules: null
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: argocd
+      meta.helm.sh/release-namespace: argocd
+    creationTimestamp: "2025-07-22T22:42:09Z"
+    labels:
+      app.kubernetes.io/component: server
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: argocd-server
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v2.10.7
+      helm.sh/chart: argo-cd-6.7.14
+    name: argocd-server
+    namespace: argocd
+    resourceVersion: "17047"
+    uid: 5a5ddb3e-506d-42bb-aa62-fc9621dda33c
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    - configmaps
+    verbs:
+    - create
+    - get
+    - list
+    - watch
+    - update
+    - patch
+    - delete
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - applications
+    - applicationsets
+    - appprojects
+    verbs:
+    - create
+    - get
+    - list
+    - watch
+    - update
+    - delete
+    - patch
+  - apiGroups:
+    - ""
+    resources:
+    - events
+    verbs:
+    - create
+    - list
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: nfs-subdir-external-provisioner
+      meta.helm.sh/release-namespace: default
+    creationTimestamp: "2025-07-22T22:37:16Z"
+    labels:
+      app: nfs-subdir-external-provisioner
+      app.kubernetes.io/managed-by: Helm
+      chart: nfs-subdir-external-provisioner-4.0.18
+      heritage: Helm
+      release: nfs-subdir-external-provisioner
+    name: leader-locking-nfs-subdir-external-provisioner
+    namespace: default
+    resourceVersion: "14664"
+    uid: 4c0ef484-b1ee-4f3c-975d-c00c1fa6183f
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - endpoints
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      rbac.authorization.kubernetes.io/autoupdate: "true"
+    creationTimestamp: "2025-07-22T21:21:52Z"
+    labels:
+      kubernetes.io/bootstrapping: rbac-defaults
+    name: system:controller:bootstrap-signer
+    namespace: kube-public
+    resourceVersion: "185"
+    uid: bdb03c65-87a6-474a-8a39-808f49f57767
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ""
+    resourceNames:
+    - cluster-info
+    resources:
+    - configmaps
+    verbs:
+    - update
+  - apiGroups:
+    - ""
+    - events.k8s.io
+    resources:
+    - events
+    verbs:
+    - create
+    - patch
+    - update
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      rbac.authorization.kubernetes.io/autoupdate: "true"
+    creationTimestamp: "2025-07-22T21:21:52Z"
+    labels:
+      kubernetes.io/bootstrapping: rbac-defaults
+    name: extension-apiserver-authentication-reader
+    namespace: kube-system
+    resourceVersion: "179"
+    uid: 586075a3-ab6c-48d2-be55-a3ff7d0c2ea4
+  rules:
+  - apiGroups:
+    - ""
+    resourceNames:
+    - extension-apiserver-authentication
+    resources:
+    - configmaps
+    verbs:
+    - get
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    creationTimestamp: "2025-07-22T22:28:10Z"
+    name: kube-vip-role
+    namespace: kube-system
+    resourceVersion: "11401"
+    uid: 78b3150b-382b-48d5-913f-39eca8a336ef
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - endpoints
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+  - apiGroups:
+    - coordination.k8s.io
+    resources:
+    - leases
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      rbac.authorization.kubernetes.io/autoupdate: "true"
+    creationTimestamp: "2025-07-22T21:21:52Z"
+    labels:
+      kubernetes.io/bootstrapping: rbac-defaults
+    name: system::leader-locking-kube-controller-manager
+    namespace: kube-system
+    resourceVersion: "183"
+    uid: 691fc666-d36a-4bec-9d92-647d26471e8d
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - watch
+  - apiGroups:
+    - ""
+    resourceNames:
+    - kube-controller-manager
+    resources:
+    - configmaps
+    verbs:
+    - get
+    - update
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      rbac.authorization.kubernetes.io/autoupdate: "true"
+    creationTimestamp: "2025-07-22T21:21:52Z"
+    labels:
+      kubernetes.io/bootstrapping: rbac-defaults
+    name: system::leader-locking-kube-scheduler
+    namespace: kube-system
+    resourceVersion: "184"
+    uid: e4fb4998-cd25-4709-aab9-8199a1d017d8
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - watch
+  - apiGroups:
+    - ""
+    resourceNames:
+    - kube-scheduler
+    resources:
+    - configmaps
+    verbs:
+    - get
+    - update
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      rbac.authorization.kubernetes.io/autoupdate: "true"
+    creationTimestamp: "2025-07-22T21:21:52Z"
+    labels:
+      kubernetes.io/bootstrapping: rbac-defaults
+    name: system:controller:bootstrap-signer
+    namespace: kube-system
+    resourceVersion: "180"
+    uid: 717cb029-5e6b-4137-aba1-b28c04a331a7
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      rbac.authorization.kubernetes.io/autoupdate: "true"
+    creationTimestamp: "2025-07-22T21:21:52Z"
+    labels:
+      kubernetes.io/bootstrapping: rbac-defaults
+    name: system:controller:cloud-provider
+    namespace: kube-system
+    resourceVersion: "181"
+    uid: 8c8f1615-3ee1-4d77-8eb7-ebaa24c29e02
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - create
+    - get
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      rbac.authorization.kubernetes.io/autoupdate: "true"
+    creationTimestamp: "2025-07-22T21:21:52Z"
+    labels:
+      kubernetes.io/bootstrapping: rbac-defaults
+    name: system:controller:token-cleaner
+    namespace: kube-system
+    resourceVersion: "182"
+    uid: d6f8828f-1631-40fe-81e5-a9c56263706b
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    verbs:
+    - delete
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ""
+    - events.k8s.io
+    resources:
+    - events
+    verbs:
+    - create
+    - patch
+    - update
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: metallb
+      meta.helm.sh/release-namespace: metallb-system
+    creationTimestamp: "2025-07-22T22:30:54Z"
+    labels:
+      app.kubernetes.io/instance: metallb
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: metallb
+      app.kubernetes.io/version: v0.15.2
+      helm.sh/chart: metallb-0.15.2
+    name: metallb-controller
+    namespace: metallb-system
+    resourceVersion: "12493"
+    uid: 540100dd-e99f-489e-b003-068d970a66eb
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    verbs:
+    - create
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ""
+    resourceNames:
+    - metallb-memberlist
+    resources:
+    - secrets
+    verbs:
+    - list
+  - apiGroups:
+    - apps
+    resourceNames:
+    - metallb-controller
+    resources:
+    - deployments
+    verbs:
+    - get
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - ipaddresspools
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - ipaddresspools/status
+    verbs:
+    - update
+  - apiGroups:
+    - metallb.io
+    resources:
+    - bgppeers
+    verbs:
+    - get
+    - list
+  - apiGroups:
+    - metallb.io
+    resources:
+    - bgpadvertisements
+    verbs:
+    - get
+    - list
+  - apiGroups:
+    - metallb.io
+    resources:
+    - l2advertisements
+    verbs:
+    - get
+    - list
+  - apiGroups:
+    - metallb.io
+    resources:
+    - communities
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - bfdprofiles
+    verbs:
+    - get
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: metallb
+      meta.helm.sh/release-namespace: metallb-system
+    creationTimestamp: "2025-07-22T22:30:54Z"
+    labels:
+      app.kubernetes.io/instance: metallb
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: metallb
+      app.kubernetes.io/version: v0.15.2
+      helm.sh/chart: metallb-0.15.2
+    name: metallb-pod-lister
+    namespace: metallb-system
+    resourceVersion: "12494"
+    uid: d0444114-72ae-402c-a39e-a9392f18c401
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - pods
+    verbs:
+    - list
+    - get
+  - apiGroups:
+    - ""
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - bfdprofiles
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - bgppeers
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - l2advertisements
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - bgpadvertisements
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - ipaddresspools
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - communities
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - metallb.io
+    resources:
+    - servicebgpstatuses
+    - servicebgpstatuses/status
+    verbs:
+    - '*'
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: kube-prometheus-stack
+      meta.helm.sh/release-namespace: monitoring
+    creationTimestamp: "2025-07-22T22:37:50Z"
+    labels:
+      app.kubernetes.io/instance: kube-prometheus-stack
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: grafana
+      app.kubernetes.io/version: 12.1.0
+      helm.sh/chart: grafana-9.3.0
+    name: kube-prometheus-stack-grafana
+    namespace: monitoring
+    resourceVersion: "8474043"
+    uid: 8e8a0af4-2d40-41fd-8dc9-35b8a5729a39
+  rules: null
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    creationTimestamp: "2025-08-09T20:21:11Z"
+    name: rbac-readonly
+    namespace: sqldump
+    resourceVersion: "8004843"
+    uid: 52d979c8-0515-4215-9d3e-7c6471c72fae
+  rules:
+  - apiGroups:
+    - rbac.authorization.k8s.io
+    resources:
+    - roles
+    - rolebindings
+    verbs:
+    - get
+    - list
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: velero
+      meta.helm.sh/release-namespace: velero
+    creationTimestamp: "2025-07-26T19:15:39Z"
+    labels:
+      app.kubernetes.io/component: server
+      app.kubernetes.io/instance: velero
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: velero
+      helm.sh/chart: velero-5.2.0
+    name: velero-server
+    namespace: velero
+    resourceVersion: "1760839"
+    uid: dddc1c80-d30a-4304-9338-e42f3dd816dd
+  rules:
+  - apiGroups:
+    - '*'
+    resources:
+    - '*'
+    verbs:
+    - '*'
+kind: List
+metadata:
+  resourceVersion: ""

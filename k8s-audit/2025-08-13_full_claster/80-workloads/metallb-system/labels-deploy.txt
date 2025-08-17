@@ -1,0 +1,2 @@
+NAME                 LABELS
+metallb-controller   map[app.kubernetes.io/component:controller app.kubernetes.io/instance:metallb app.kubernetes.io/name:metallb]

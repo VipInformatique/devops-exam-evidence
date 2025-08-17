@@ -1,0 +1,2 @@
+NAME                LABELS
+devistor-app-prod   map[app:devistor-prod]

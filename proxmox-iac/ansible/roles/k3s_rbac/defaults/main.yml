@@ -1,0 +1,10 @@
+---
+namespaces:
+  - name: prod
+    deploy: devistor-app-prod
+    app_label_key: app
+    app_label_value: devistor-prod
+  - name: dev
+    deploy: devistor-app-dev
+    app_label_key: app
+    app_label_value: devistor-dev

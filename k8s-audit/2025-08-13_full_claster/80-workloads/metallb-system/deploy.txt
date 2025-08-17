@@ -1,0 +1,2 @@
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                               SELECTOR
+metallb-controller   1/1     1            1           21d   controller   quay.io/metallb/controller:v0.15.2   app.kubernetes.io/component=controller,app.kubernetes.io/instance=metallb,app.kubernetes.io/name=metallb

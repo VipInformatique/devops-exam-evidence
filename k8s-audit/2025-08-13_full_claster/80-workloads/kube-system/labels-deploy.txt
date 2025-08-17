@@ -1,0 +1,4 @@
+NAME                     LABELS
+coredns                  map[k8s-app:kube-dns]
+local-path-provisioner   map[app:local-path-provisioner]
+metrics-server           map[k8s-app:metrics-server]

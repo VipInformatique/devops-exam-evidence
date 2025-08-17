@@ -1,0 +1,101 @@
+# ──────────  NAMESPACES  ──────────
+- name: Ensure velero namespace exists
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ velero_namespace | default('velero') }}"
+
+# ──────────  SECRET FOR R2  ──────────
+- name: Ensure cloud-credentials secret for R2
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: cloud-credentials
+        namespace: "{{ velero_namespace }}"
+      type: Opaque
+      stringData:
+        cloud: |
+          [default]
+          aws_access_key_id={{ r2_access_key | quote }}
+          aws_secret_access_key={{ r2_secret_key | quote }}
+
+# ──────────  HELM REPO  ──────────
+- name: Add Velero Helm repo
+  kubernetes.core.helm_repository:
+    name: vmware-tanzu # Official repo name
+    repo_url: https://vmware-tanzu.github.io/helm-charts
+
+# ──────────  INSTALL / UPGRADE VELERO  ──────────
+- name: Install / upgrade Velero with R2 backend
+  kubernetes.core.helm:
+    name: velero
+    chart_ref: vmware-tanzu/velero
+    chart_version: "{{ velero_chart_version | default('5.2.0') }}" # Pin chart version for stability
+    namespace: "{{ velero_namespace }}"
+    create_namespace: true
+    wait: true
+    values:
+      # Use the modern 'plugins' list instead of initContainers
+      # This is the recommended approach for recent chart versions
+      initContainers:
+        - name: velero-plugin-for-aws
+          image: "velero/velero-plugin-for-aws:{{ aws_plugin_version }}"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: plugins
+              mountPath: /target
+
+      configuration:
+        # Define the Backup Storage Location (BSL) for Cloudflare R2
+        backupStorageLocation:
+          - name: r2
+            provider: aws
+            bucket: "{{ r2_bucket }}"
+            default: true
+            config:
+              region: "{{ r2_region | default('auto') }}"
+              s3ForcePathStyle: "true"
+              s3Url: "https://{{ cloudflare_account_id }}.r2.cloudflarestorage.com"
+        
+        # Disable volume snapshots as we are not backing up PVs
+        volumeSnapshotLocation: []
+
+      # Use the secret created earlier for R2 credentials
+      credentials:
+        useSecret: true
+        existingSecret: cloud-credentials
+
+      # Disable snapshots since we are only backing up Kubernetes objects
+      snapshotsEnabled: false
+      
+      # Disable the node agent (restic/kopia) as we are not backing up persistent volumes
+      deployNodeAgent: false
+
+# ──────────  SCHEDULE (CRD, 02:00)  ──────────
+- name: Create/Update nightly velero schedule (02:00)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: velero.io/v1
+      kind: Schedule
+      metadata:
+        name: nightly
+        namespace: "{{ velero_namespace }}"
+      spec:
+        schedule: "{{ velero_schedule_cron | default('0 2 * * *') }}"
+        template:
+          storageLocation: r2
+          ttl: "{{ velero_backup_ttl | default('720h0m0s') }}" # 30 days
+          includedNamespaces:
+            - "*"
+          excludedResources:
+            - persistentvolumes
+            - persistentvolumeclaims
+            - volumesnapshots.snapshot.storage.k8s.io
+            - volumesnapshotcontents.snapshot.storage.k8s.io

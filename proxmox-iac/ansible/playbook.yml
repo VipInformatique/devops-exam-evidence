@@ -1,0 +1,192 @@
+---
+# =============================================================================
+# 00. Session header (timestamp on controller)
+# =============================================================================
+- name: 00. Session header
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Display start timestamp (ISO-8601)
+      ansible.builtin.command: date -Iseconds
+      register: _ts
+      changed_when: false
+    - name: Show
+      ansible.builtin.debug:
+        msg: "Playbook started at: {{ _ts.stdout }}"
+
+# =============================================================================
+# 0. Pre-flight (inventory + terraform presence)
+# =============================================================================
+- name: 0. Pre-flight checks
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Ensure group 'proxmox_nodes' exists and is non-empty
+      ansible.builtin.assert:
+        that:
+          - groups['proxmox_nodes'] is defined
+          - groups['proxmox_nodes'] | length > 0
+        fail_msg: "Inventory group 'proxmox_nodes' missing or empty."
+    - name: Terraform available
+      ansible.builtin.command: terraform -version
+      changed_when: false
+
+# =============================================================================
+# 1. Proxmox configuration & hardening
+# =============================================================================
+- name: 1. Proxmox configuration & hardening
+  hosts: proxmox_nodes
+  become: true
+  gather_facts: false
+  roles:
+    - proxmox_base_config          # base networking, users, API token
+    - proxmox-security             # fail2ban, SSH/web hardening
+    - proxmox-monitoring           # node_exporter on hypervisors
+    - proxmox-maintenance          # housekeeping, timers, logrotate
+    - proxmox-cluster              # create/join Proxmox VE cluster
+    - proxmox_firewall_datacenter  # DC-level firewall policy
+
+# =============================================================================
+# 2. Provision VMs via Terraform
+# =============================================================================
+- name: 2. Provision VMs via Terraform
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    tf_dir: "{{ playbook_dir }}/../terraform"
+  tasks:
+    - name: Terraform init (idempotent)
+      community.general.terraform:
+        project_path: "{{ tf_dir }}"
+        state: present
+        force_init: true
+        parallelism: 1
+      changed_when: false
+
+    - name: Terraform apply (create/update infra)
+      community.general.terraform:
+        project_path: "{{ tf_dir }}"
+        state: present
+      register: tf_apply_result
+
+    - name: Show Terraform result
+      ansible.builtin.debug:
+        var: tf_apply_result
+
+    - name: Refresh inventory (new VMs)
+      meta: refresh_inventory
+
+# =============================================================================
+# 3. Wait for SSH on all K3s nodes
+# =============================================================================
+- name: 3. Wait for SSH on all K3s nodes
+  hosts: k3s_masters:k3s_workers
+  gather_facts: false
+  tasks:
+    - name: Wait for port 22
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        timeout: 300
+        delay: 10
+      delegate_to: localhost
+
+# =============================================================================
+# 4. Prepare nodes (OS prerequisites)
+# =============================================================================
+- name: 4. Prepare nodes (OS prerequisites)
+  hosts: k3s_cluster
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure python3-kubernetes
+      ansible.builtin.apt:
+        name: python3-kubernetes
+        state: present
+        update_cache: yes
+    - name: Ensure iptables
+      ansible.builtin.apt:
+        name: iptables
+        state: present
+    - name: Ensure nfs-common
+      ansible.builtin.apt:
+        name: nfs-common
+        state: present
+
+# =============================================================================
+# 5. Install K3s (control-plane + workers)
+# =============================================================================
+- name: 5. Install K3s (control-plane + workers)
+  hosts: k3s_cluster
+  become: true
+  gather_facts: false
+  roles:
+    - k3s_core                     # --cluster-init on first master + joins
+
+- name: 5b. Ensure Helm on controller (optional)
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Check Helm
+      ansible.builtin.command: helm version
+      register: helm_ver
+      changed_when: false
+      failed_when: helm_ver.rc not in [0]
+
+
+# =============================================================================
+# 6. Platform add-ons, Security, Backups & LB hardening (controller)
+# =============================================================================
+- name: 6. Platform add-ons, Security, Backups & LB hardening (controller)
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  tags: [addons] 
+  roles:
+    # --- ADD-ONS (platform services) ---
+    - nfs_provisioner             # StorageClasses (RWX), PVC defaults
+    - k3s_addons                  # Traefik (ClusterIP), MetalLB, CRDs if needed
+    - k3s_monitoring              # kube-prometheus-stack, Loki, Promtail
+    - k3s_alerting                # Alertmanager, Grafana, Loki alerts
+    - cloudflare_tunnel           # cloudflared connector (Zero Trust)
+    - k3s_argocd                  # Argo CD (GitOps controller)
+    - traefik_routes              # IngressRoutes + CF-Connecting-IP anti-bypass
+
+    # # --- SECURITY BASELINE ---
+    - k3s_rbac                    # ServiceAccounts + Roles/Bindings (least privilege)
+    - k3s_networkpolicy           # default-deny, allow-from-traefik, egress DNS/DB
+    - devistor_networkpolicy      # app-specific tightenings for dev/prod
+
+    # # --- BACKUPS & COMPLIANCE ---
+    - k3s_velero                  # cluster & PVC backups to Cloudflare R2
+    - k3s_neon_backup             # logical dumps & time markers to NAS
+    - k3s_rgpd_meta               # GDPR meta: secrets rotation & RBAC export
+
+    # # --- LOADBALANCER HARDENING ---
+    - lb_hardening                # restrict exposure (e.g., monitoring LB to VPN ranges)
+
+# =============================================================================
+# 7. Final smoke test (cluster health)
+# =============================================================================
+- name: 7. Final smoke test (cluster health)
+  hosts: k3s_masters[0]
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Nodes should be Ready
+      ansible.builtin.command: kubectl get nodes
+      register: nodes_status
+      changed_when: false
+      failed_when: "'NotReady' in nodes_status.stdout"
+    - name: Show nodes
+      ansible.builtin.debug:
+        var: nodes_status.stdout
+    - name: CoreDNS pods should be Running
+      ansible.builtin.command: kubectl get pods -n kube-system -l k8s-app=kube-dns
+      register: dns_pods
+      changed_when: false
+      failed_when: "'Running' not in dns_pods.stdout"
+    - name: Show CoreDNS
+      ansible.builtin.debug:
+        var: dns_pods.stdout

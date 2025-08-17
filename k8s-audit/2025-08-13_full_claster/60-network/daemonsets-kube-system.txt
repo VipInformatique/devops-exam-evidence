@@ -1,0 +1,2 @@
+NAME       DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR                                AGE   CONTAINERS   IMAGES                             SELECTOR
+kube-vip   3         3         3       3            3           node-role.kubernetes.io/control-plane=true   21d   kube-vip     ghcr.io/kube-vip/kube-vip:v0.8.1   app=kube-vip

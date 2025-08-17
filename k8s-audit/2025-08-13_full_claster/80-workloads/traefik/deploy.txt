@@ -1,0 +1,2 @@
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                      SELECTOR
+traefik   3/3     3            3           21d   traefik      docker.io/traefik:v2.10.6   app.kubernetes.io/instance=traefik-traefik,app.kubernetes.io/name=traefik

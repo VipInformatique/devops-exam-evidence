@@ -1,0 +1,33 @@
+- name: Restrict monitoring LBs to VPN
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    api_version: v1
+    kind: Service
+    namespace: "{{ monitoring_ns }}"
+    name: "{{ item }}"
+    merge_type: strategic-merge
+    state: present
+    definition:
+      spec:
+        loadBalancerSourceRanges:
+          - "{{ wg_admin_cidr }}"
+  loop: "{{ monitoring_lb_svcs }}"
+  loop_control: { label: "{{ item }}" }
+
+- name: Check configured ranges (log)
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    api_version: v1
+    kind: Service
+    namespace: "{{ monitoring_ns }}"
+    name: "{{ item }}"
+  loop: "{{ monitoring_lb_svcs }}"
+  register: lb_info
+  changed_when: false
+
+- name: Print ranges
+  debug:
+    msg: "{{ item.resources[0].spec.loadBalancerSourceRanges | default([]) }}"
+  loop: "{{ lb_info.results }}"
+  loop_control:
+    label: "{{ item.resources[0].metadata.name if item.resources|length>0 else 'svc' }}"

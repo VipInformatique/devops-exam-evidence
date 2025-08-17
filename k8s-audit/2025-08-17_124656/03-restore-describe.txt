@@ -1,0 +1,82 @@
+Name:         [1mpost-rbac-restore-2025-08-17-124656[0m
+Namespace:    velero
+Labels:       <none>
+Annotations:  <none>
+
+Phase:                       [32mCompleted[0m
+Total items to be restored:  26
+Items restored:              26
+
+Started:    2025-08-17 12:47:26 +0200 CEST
+Completed:  2025-08-17 12:47:31 +0200 CEST
+
+Warnings:
+  Velero:     <none>
+  Cluster:    <none>
+  Namespaces:
+    prod-restore-rbac-124656:  could not restore, ConfigMap "kube-root-ca.crt" already exists. Warning: the in-cluster version is different than the backed-up version
+
+Backup:  post-rbac-2025-08-17-124656
+
+Namespaces:
+  Included:  prod
+  Excluded:  <none>
+
+Resources:
+  Included:        *
+  Excluded:        ingress, ingresses.networking.k8s.io, ingressroute.traefik.containo.us, ingressroutetcp.traefik.containo.us, ingressrouteudp.traefik.containo.us, ingressroute.traefik.io, ingressroutetcp.traefik.io, ingressrouteudp.traefik.io, pods, nodes, events, events.events.k8s.io, backups.velero.io, restores.velero.io, resticrepositories.velero.io, csinodes.storage.k8s.io, volumeattachments.storage.k8s.io, backuprepositories.velero.io
+  Cluster-scoped:  excluded
+
+Namespace mappings:  prod=prod-restore-rbac-124656
+
+Label selector:  <none>
+
+Or label selector:  <none>
+
+Restore PVs:  auto
+
+Existing Resource Policy:   <none>
+ItemOperationTimeout:       4h0m0s
+
+Preserve Service NodePorts:  auto
+
+
+Resource List:
+  apps/v1/Deployment:
+    - prod-restore-rbac-124656/devistor-app-prod(created)
+  apps/v1/ReplicaSet:
+    - prod-restore-rbac-124656/devistor-app-prod-576f5b69b6(created)
+    - prod-restore-rbac-124656/devistor-app-prod-5965d8db54(created)
+    - prod-restore-rbac-124656/devistor-app-prod-66bdc97594(created)
+    - prod-restore-rbac-124656/devistor-app-prod-785b84cb7b(created)
+  discovery.k8s.io/v1/EndpointSlice:
+    - prod-restore-rbac-124656/devistor-service-prod-6vrxh(created)
+  networking.k8s.io/v1/NetworkPolicy:
+    - prod-restore-rbac-124656/allow-dns-egress(created)
+    - prod-restore-rbac-124656/allow-egress-db-web(created)
+    - prod-restore-rbac-124656/allow-egress-dns-and-db(created)
+    - prod-restore-rbac-124656/allow-from-traefik(created)
+    - prod-restore-rbac-124656/allow-ingress-from-traefik(created)
+    - prod-restore-rbac-124656/default-deny(created)
+    - prod-restore-rbac-124656/default-deny-all-ingress(created)
+  rbac.authorization.k8s.io/v1/Role:
+    - prod-restore-rbac-124656/devistor-read-config(created)
+  rbac.authorization.k8s.io/v1/RoleBinding:
+    - prod-restore-rbac-124656/devistor-read-config(created)
+  v1/ConfigMap:
+    - prod-restore-rbac-124656/devistor-config-prod(created)
+    - prod-restore-rbac-124656/kube-root-ca.crt(failed)
+    - prod-restore-rbac-124656/restore-canary(created)
+  v1/Endpoints:
+    - prod-restore-rbac-124656/devistor-service-prod(created)
+  v1/PersistentVolumeClaim:
+    - prod-restore-rbac-124656/canary-pvc(created)
+    - prod-restore-rbac-124656/flask-uploads-pvc-prod(created)
+  v1/Secret:
+    - prod-restore-rbac-124656/devistor-secrets-prod(created)
+    - prod-restore-rbac-124656/dockerhub-creds(created)
+  v1/Service:
+    - prod-restore-rbac-124656/devistor-service-prod(created)
+  v1/ServiceAccount:
+    - prod-restore-rbac-124656/default(updated)
+    - prod-restore-rbac-124656/devistor-sa(created)

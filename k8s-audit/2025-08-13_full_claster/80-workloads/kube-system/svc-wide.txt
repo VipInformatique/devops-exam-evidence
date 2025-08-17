@@ -1,0 +1,9 @@
+NAME                                            TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                        AGE   SELECTOR
+kube-dns                                        ClusterIP   10.43.0.10    <none>        53/UDP,53/TCP,9153/TCP         21d   k8s-app=kube-dns
+kube-prometheus-stack-coredns                   ClusterIP   None          <none>        9153/TCP                       21d   k8s-app=kube-dns
+kube-prometheus-stack-kube-controller-manager   ClusterIP   None          <none>        10257/TCP                      21d   component=kube-controller-manager
+kube-prometheus-stack-kube-etcd                 ClusterIP   None          <none>        2381/TCP                       21d   component=etcd
+kube-prometheus-stack-kube-proxy                ClusterIP   None          <none>        10249/TCP                      21d   k8s-app=kube-proxy
+kube-prometheus-stack-kube-scheduler            ClusterIP   None          <none>        10259/TCP                      21d   component=kube-scheduler
+kube-prometheus-stack-kubelet                   ClusterIP   None          <none>        10250/TCP,10255/TCP,4194/TCP   21d   <none>
+metrics-server                                  ClusterIP   10.43.59.48   <none>        443/TCP                        21d   k8s-app=metrics-server

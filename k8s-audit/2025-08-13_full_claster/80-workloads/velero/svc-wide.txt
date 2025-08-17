@@ -1,0 +1,2 @@
+NAME     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE   SELECTOR
+velero   ClusterIP   10.43.212.139   <none>        8085/TCP   17d   app.kubernetes.io/instance=velero,app.kubernetes.io/name=velero,name=velero

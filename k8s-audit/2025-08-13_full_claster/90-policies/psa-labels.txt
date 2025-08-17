@@ -1,0 +1,13 @@
+argocd  
+cloudflare  
+default  
+dev  
+kube-node-lease  
+kube-public  
+kube-system  
+metallb-system  
+monitoring  
+prod  
+sqldump  
+traefik  
+velero  

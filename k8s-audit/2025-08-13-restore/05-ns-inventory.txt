@@ -1,0 +1,13 @@
+NAME                        READY   STATUS      RESTARTS   AGE   IP            NODE            NOMINATED NODE   READINESS GATES
+pod/canary-reader-restore   0/1     Completed   0          14m   10.42.4.136   k8s-master-02   <none>           <none>
+
+NAME                         DATA   AGE
+configmap/kube-root-ca.crt   1      27m
+configmap/restore-canary     1      27m
+
+NAME                           TYPE                             DATA   AGE
+secret/devistor-secrets-prod   Opaque                           4      27m
+secret/dockerhub-creds         kubernetes.io/dockerconfigjson   1      27m
+
+NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE   VOLUMEMODE
+persistentvolumeclaim/canary-pvc   Bound    pvc-e127591e-d1f4-41f0-93fa-788a8ff8acc8   100Mi      RWO            local-path     <unset>                 16m   Filesystem

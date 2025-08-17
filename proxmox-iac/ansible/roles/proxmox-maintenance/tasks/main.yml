@@ -1,0 +1,19 @@
+---
+# tasks file for proxmox-maintenance
+
+- name: 1. Deploy proxmox configuration backup script
+  ansible.builtin.template:
+    src: backup-proxmox.sh.j2
+    dest: /root/backup-proxmox.sh
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: 2. Schedule daily backup cron job
+  ansible.builtin.cron:
+    name: "Proxmox config daily backup"
+    minute: "0"
+    hour: "3"
+    job: "/root/backup-proxmox.sh >> /var/log/backup-proxmox.log 2>&1"
+    user: root
+    state: present

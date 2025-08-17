@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloudflare
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: cloudflare
+
+data:
+  config.yaml: |
+    tunnel: {{ cloudflare_tunnel_id }}
+    credentials-file: /etc/cloudflared/creds/credentials.json
+    protocol: {{ cloudflare_tunnel_protocol | default("http2") }}
+    ingress:
+{% for route in cloudflared_tunnel_routes %}
+      - hostname: {{ route.hostname }}
+        service: {{ route.service }}
+{% endfor %}
+      - service: http_status:404
+    originRequest:
+      noTLSVerify: true
+      http2Origin: true
+      connectTimeout: 30s
+      tcpKeepAlive: 30s
+      idleTimeout: 300s
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: cloudflare
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudflared
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+    spec:
+      nodeSelector:
+        role: worker
+      containers:
+      - name: cloudflared
+        image: cloudflare/cloudflared:latest
+        args:
+          - tunnel
+          - --config
+          - /etc/cloudflared/config.yaml
+          - run
+        volumeMounts:
+          - name: config
+            mountPath: /etc/cloudflared/config.yaml
+            subPath: config.yaml
+          - name: creds
+            mountPath: /etc/cloudflared/creds/credentials.json
+            subPath: credentials.json
+      volumes:
+        - name: config
+          configMap:
+            name: cloudflared-config
+        - name: creds
+          secret:
+            secretName: cloudflared-credentials

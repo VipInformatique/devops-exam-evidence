@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ cleanup_cj_name }}
+  namespace: {{ backup_ns }}
+spec:
+  schedule: "{{ cleanup_schedule }}"
+  timeZone: "{{ marker_tz | default('Europe/Paris') }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: cleanup
+            image: {{ img_alpine }}
+            volumeMounts:
+            - name: backups
+              mountPath: /backups
+            command: ["/bin/sh","-c"]
+            args:
+              - |
+                set -eu
+                # zostaw {{ keep_last_dumps }} najnowszych dumpów
+                ls -1t /backups/neon_*.dump 2>/dev/null | tail -n +{{ (keep_last_dumps | int) + 1 }} | xargs -r rm -f
+          volumes:
+          - name: backups
+            persistentVolumeClaim:
+              claimName: {{ pvc_name }}

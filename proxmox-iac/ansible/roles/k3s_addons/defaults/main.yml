@@ -1,0 +1,2 @@
+k3s_custom_kubeconfig_path: "/etc/rancher/k3s/k3s.yaml"
+k3s_addons_skip_embedded_kubeconfig: true

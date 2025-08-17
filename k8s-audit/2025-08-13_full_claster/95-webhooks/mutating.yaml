@@ -1,0 +1,57 @@
+apiVersion: v1
+items:
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: MutatingWebhookConfiguration
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: kube-prometheus-stack
+      meta.helm.sh/release-namespace: monitoring
+    creationTimestamp: "2025-07-22T22:37:51Z"
+    generation: 2
+    labels:
+      app: kube-prometheus-stack-admission
+      app.kubernetes.io/component: prometheus-operator-webhook
+      app.kubernetes.io/instance: kube-prometheus-stack
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+      app.kubernetes.io/part-of: kube-prometheus-stack
+      app.kubernetes.io/version: 75.15.0
+      chart: kube-prometheus-stack-75.15.0
+      heritage: Helm
+      release: kube-prometheus-stack
+    name: kube-prometheus-stack-admission
+    resourceVersion: "1743205"
+    uid: a7f5f1ab-319b-4d20-b8dc-8a18b7cf2d42
+  webhooks:
+  - admissionReviewVersions:
+    - v1
+    - v1beta1
+    clientConfig:
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJkekNDQVJ5Z0F3SUJBZ0lSQUxLSExqWDBCTm1XVjBZNW0vMTVmVFF3Q2dZSUtvWkl6ajBFQXdJd0R6RU4KTUFzR0ExVUVDaE1FYm1sc01UQWdGdzB5TlRBM01qSXlNak15TkRaYUdBOHlNVEkxTURZeU9ESXlNekkwTmxvdwpEekVOTUFzR0ExVUVDaE1FYm1sc01UQlpNQk1HQnlxR1NNNDlBZ0VHQ0NxR1NNNDlBd0VIQTBJQUJHNkZzN2VnCmJlRnpEajBKa2RFR0J3OWxjaVE3M2ZHSkdaNVpiUFJtekZVcW5IUDZuU0x5OHBPSERpL3gxaERKRXMvSWpPSnkKYzc1Uk9SZitjYi9BTTRtalZ6QlZNQTRHQTFVZER3RUIvd1FFQXdJQ0JEQVRCZ05WSFNVRUREQUtCZ2dyQmdFRgpCUWNEQVRBUEJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJTUVlsbHRpZEdoWnl0bFZZRExPc0pwClNaaG1wakFLQmdncWhrak9QUVFEQWdOSkFEQkdBaUVBOHRMdnM2Y2FRYzlCRzBjcUxtYmpuU2JBNlNNSnExYTIKeW4yaTlGNmljMnNDSVFDNERkODhkKzRjdStBdlhPY1BUVmlYcHFTNnJZTkllUEk0Sk1RQ1VqUXZmdz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+      service:
+        name: kube-prometheus-stack-operator
+        namespace: monitoring
+        path: /admission-prometheusrules/mutate
+        port: 443
+    failurePolicy: Ignore
+    matchPolicy: Equivalent
+    name: prometheusrulemutate.monitoring.coreos.com
+    namespaceSelector: {}
+    objectSelector: {}
+    reinvocationPolicy: Never
+    rules:
+    - apiGroups:
+      - monitoring.coreos.com
+      apiVersions:
+      - '*'
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - prometheusrules
+      scope: '*'
+    sideEffects: None
+    timeoutSeconds: 10
+kind: List
+metadata:
+  resourceVersion: ""

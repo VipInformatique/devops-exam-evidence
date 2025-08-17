@@ -1,0 +1,90 @@
+- name: Zdefiniuj mapę namespace → label aplikacji
+  set_fact:
+    devistor_ns_labels:
+      dev: devistor-dev
+      prod: devistor-prod
+
+- name: Apply default-deny-all-ingress policy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: default-deny-all-ingress
+        namespace: "{{ item }}"
+      spec:
+        podSelector: {}
+        policyTypes: [Ingress]
+  loop: "{{ devistor_ns_labels.keys() | list }}"
+
+- name: Apply allow-ingress-from-traefik policy
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-ingress-from-traefik
+        namespace: "{{ item }}"
+      spec:
+        podSelector:
+          matchLabels:
+            app: "{{ devistor_ns_labels[item] }}"
+        policyTypes: [Ingress]
+        ingress:
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: traefik
+              podSelector:
+                matchLabels:
+                  app.kubernetes.io/name: traefik
+          ports:
+            - protocol: TCP
+              port: 8000
+  loop: "{{ devistor_ns_labels.keys() | list }}"
+
+- name: Allow DNS egress traffic
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-dns-egress
+        namespace: "{{ item }}"
+      spec:
+        podSelector: {}
+        policyTypes: [Egress]
+        egress:
+          - ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+  loop: "{{ devistor_ns_labels.keys() | list }}"
+
+- name: Allow egress to DB and web
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-egress-db-web
+        namespace: "{{ item }}"
+      spec:
+        podSelector:
+          matchLabels:
+            app: "{{ devistor_ns_labels[item] }}"
+        policyTypes: [Egress]
+        egress:
+          - ports:
+              - protocol: TCP
+                port: 5432
+              - protocol: TCP
+                port: 443
+              - protocol: TCP
+                port: 80
+  loop: "{{ devistor_ns_labels.keys() | list }}"

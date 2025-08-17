@@ -1,0 +1,2 @@
+NAME                READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS      IMAGES                                  SELECTOR
+devistor-app-prod   2/2     2            2           10d   devistor-prod   vipinformatique/devistor:prod-f3f308e   app=devistor-prod

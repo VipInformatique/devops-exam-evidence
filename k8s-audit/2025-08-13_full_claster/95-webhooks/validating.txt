@@ -1,0 +1,3 @@
+NAME                              WEBHOOKS   AGE
+kube-prometheus-stack-admission   1          21d
+metallb-webhook-configuration     6          21d

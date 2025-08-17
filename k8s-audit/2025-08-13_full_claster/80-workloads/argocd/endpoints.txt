@@ -1,0 +1,6 @@
+NAME                               ENDPOINTS                           AGE
+argocd-applicationset-controller   10.42.2.33:7000                     21d
+argocd-dex-server                  10.42.2.21:5557,10.42.2.21:5556     21d
+argocd-redis                       10.42.5.144:6379                    21d
+argocd-repo-server                 10.42.0.222:8081                    21d
+argocd-server                      10.42.0.225:8080,10.42.0.225:8080   21d

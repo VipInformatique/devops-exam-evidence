@@ -1,0 +1,19 @@
+NAME                                                       READY   STATUS    RESTARTS        AGE     IP              NODE            NOMINATED NODE   READINESS GATES
+alertmanager-kube-prometheus-stack-alertmanager-0          2/2     Running   6 (6h15m ago)   5d18h   10.42.3.108     k8s-worker-02   <none>           <none>
+kube-prometheus-stack-grafana-f97dbccb5-vdxgk              3/3     Running   0               6d6h    10.42.1.68      k8s-worker-01   <none>           <none>
+kube-prometheus-stack-kube-state-metrics-667ff8d5b-54vxx   1/1     Running   0               6d6h    10.42.1.65      k8s-worker-01   <none>           <none>
+kube-prometheus-stack-operator-6cd649-nzxbm                1/1     Running   0               6d6h    10.42.1.66      k8s-worker-01   <none>           <none>
+kube-prometheus-stack-prometheus-node-exporter-27q9p       1/1     Running   0               17d     192.168.88.6    k8s-master-01   <none>           <none>
+kube-prometheus-stack-prometheus-node-exporter-c9wcb       1/1     Running   9 (6h16m ago)   17d     192.168.88.7    k8s-master-02   <none>           <none>
+kube-prometheus-stack-prometheus-node-exporter-cfqkf       1/1     Running   0               17d     192.168.88.11   k8s-worker-03   <none>           <none>
+kube-prometheus-stack-prometheus-node-exporter-p7g28       1/1     Running   0               17d     192.168.88.9    k8s-worker-01   <none>           <none>
+kube-prometheus-stack-prometheus-node-exporter-vgkb7       1/1     Running   0               17d     192.168.88.8    k8s-master-03   <none>           <none>
+kube-prometheus-stack-prometheus-node-exporter-xmlf6       1/1     Running   7 (6h15m ago)   17d     192.168.88.10   k8s-worker-02   <none>           <none>
+loki-0                                                     2/2     Running   0               2d17h   10.42.1.82      k8s-worker-01   <none>           <none>
+prometheus-kube-prometheus-stack-prometheus-0              2/2     Running   0               12d     10.42.2.36      k8s-worker-03   <none>           <none>
+promtail-65l5m                                             1/1     Running   0               2d17h   10.42.2.55      k8s-worker-03   <none>           <none>
+promtail-hpz65                                             1/1     Running   1 (6h15m ago)   2d17h   10.42.3.109     k8s-worker-02   <none>           <none>
+promtail-jsc9g                                             1/1     Running   0               2d17h   10.42.5.156     k8s-master-03   <none>           <none>
+promtail-kxgp6                                             1/1     Running   0               2d17h   10.42.0.15      k8s-master-01   <none>           <none>
+promtail-nzjpj                                             1/1     Running   1 (6h16m ago)   2d17h   10.42.4.115     k8s-master-02   <none>           <none>
+promtail-v6pqr                                             1/1     Running   0               2d17h   10.42.1.83      k8s-worker-01   <none>           <none>

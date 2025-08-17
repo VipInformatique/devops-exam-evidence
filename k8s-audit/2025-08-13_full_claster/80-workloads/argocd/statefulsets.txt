@@ -1,0 +1,2 @@
+NAME                            READY   AGE   CONTAINERS               IMAGES
+argocd-application-controller   1/1     21d   application-controller   quay.io/argoproj/argocd:v2.10.7

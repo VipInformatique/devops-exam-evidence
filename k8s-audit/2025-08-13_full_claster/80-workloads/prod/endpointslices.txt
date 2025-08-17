@@ -1,0 +1,2 @@
+NAME                          ADDRESSTYPE   PORTS   ENDPOINTS                AGE
+devistor-service-prod-6vrxh   IPv4          8000    10.42.2.56,10.42.3.110   10d

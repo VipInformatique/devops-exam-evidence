@@ -1,0 +1,2 @@
+NAME     READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                  SELECTOR
+velero   1/1     1            1           17d   velero       velero/velero:v1.12.2   app.kubernetes.io/instance=velero,app.kubernetes.io/name=velero

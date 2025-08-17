@@ -1,0 +1,152 @@
+---
+# tasks file for k3s addons role
+# IMPORTANT: This code assumes the role is executed on the host that should have Helm installed.
+# All helm operations are performed as user 'devistor'.
+
+# --- Stage 1: Install Helm on the remote host (as root) ---
+
+- name: Ensure Helm repositories are added (idempotent version)
+  ansible.builtin.command: helm repo add "{{ item.name }}" "{{ item.url }}"
+  register: repo_add_result
+  changed_when: "'has been added' in repo_add_result.stdout"
+  failed_when: "repo_add_result.rc != 0 and 'already exists' not in repo_add_result.stderr"
+  loop:
+    - { name: metallb, url: "https://metallb.github.io/metallb" }
+    - { name: traefik, url: "https://helm.traefik.io/traefik" }
+    - { name: jetstack, url: "https://charts.jetstack.io" }
+  tags:
+    - k3s_addons_helm_repos
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  changed_when: false
+  environment:
+    KUBECONFIG: "{{ k3s_kubeconfig | default(omit) }}"
+  tags:
+    - k3s_addons_helm_repos_update
+
+- name: Install or upgrade MetalLB (without configuration)
+  kubernetes.core.helm:
+    name: metallb
+    chart_ref: metallb/metallb
+    release_namespace: metallb-system
+    create_namespace: yes
+    kubeconfig: "{{ k3s_kubeconfig }}"
+  tags:
+    - k3s_addons_metallb
+
+- name: Create IPAddressPool resource directly in cluster
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    definition:
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
+      metadata:
+        name: default-pool
+        namespace: metallb-system
+      spec:
+        # Use variable defined in group_vars/all.yml
+        addresses: "{{ metallb_address_pool }}"
+
+- name: Wait until MetalLB webhook has endpoints
+  ansible.builtin.shell: |
+    kubectl -n metallb-system get endpoints metallb-webhook-service -o jsonpath='{.subsets[*].addresses[*].ip}'
+  register: webhook_endpoints
+  until: webhook_endpoints.stdout != ""
+  retries: 10
+  delay: 6
+  changed_when: false
+  failed_when: webhook_endpoints.stdout == ""
+  delegate_to: localhost
+  run_once: true
+
+- name: Apply L2Advertisement configuration for MetalLB
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "{{ k3s_kubeconfig | default(omit) }}"
+    definition:
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: default-advertisement
+        namespace: metallb-system
+      spec:
+        # This tells MetalLB to announce addresses from all defined pools
+        ipAddressPools:
+        - default-pool # Ensure the name matches the pool defined earlier
+
+# - name: "CERT-MANAGER | Add Helm repository jetstack"
+#   kubernetes.core.helm_repository:
+#     name: jetstack
+#     repo_url: "https://charts.jetstack.io"
+#     state: present
+
+# - name: "CERT-MANAGER | Install or upgrade cert-manager"
+#   kubernetes.core.helm:
+#     name: cert-manager
+#     chart_ref: jetstack/cert-manager
+#     chart_version: "v1.15.1"
+#     release_namespace: cert-manager
+#     create_namespace: true
+#     state: present
+#     values:
+#       installCRDs: true
+
+- name: "TRAEFIK | Add Helm repository for Traefik"
+  kubernetes.core.helm_repository:
+    name: traefik
+    repo_url: "https://helm.traefik.io/traefik"
+    state: present
+  ignore_errors: true
+
+- name: "TRAEFIK | Install or upgrade Traefik according to configuration"
+  kubernetes.core.helm:
+    name: traefik
+    chart_ref: traefik/traefik
+    chart_version: "v26.0.0" # Stable, tested version
+    release_namespace: traefik
+    create_namespace: true
+    state: present
+    values:
+      # Set Traefik as the default Ingress Controller
+      ingressClass:
+        enabled: true
+        isDefaultClass: true
+
+      # Define ports where Traefik will listen
+      ports:
+        web:
+          port: 8000
+          expose: true
+          exposedPort: 80
+        websecure:
+          port: 8443
+          expose: true
+          exposedPort: 443
+          tls:
+            enabled: true
+
+      # Set Traefik service as ClusterIP (public access via Cloudflare Tunnel)
+      service:
+        type: ClusterIP
+        loadBalancerSourceRanges: null
+
+      # Your specific configuration from traefik-config.yaml
+      deployment:
+        replicas: 3
+        podDisruptionBudget:
+          enabled: true
+          minAvailable: 1
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: traefik
+              topologyKey: "kubernetes.io/hostname"
+      
+      tolerations: []
+
+      nodeSelector:
+        role: worker

@@ -1,0 +1,72 @@
+---
+
+- name: Compute rotation timestamps (today and deadline +N days)
+  vars:
+    add_days_cmd: "date -d '+{{ rgpd_rotation_days }} days' +%F"
+  set_fact:
+    rgpd_rotated_at: "{{ lookup('pipe', 'date +%F') }}"
+    rgpd_rotate_by:  "{{ lookup('pipe', add_days_cmd) }}"
+
+- name: Label namespaces as RGPD personal-data scopes (idempotent)
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    apply: true
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ item }}"
+        labels:
+          rgpd: "true"
+          data.category: "personal"
+          owner: "vip-informatique"
+  loop: "{{ rgpd_namespaces }}"
+
+- name: Annotate sensitive secrets that require rotation every N days (metadata-only)
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: patched
+    merge_type: merge
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        namespace: "{{ item.namespace }}"
+        name: "{{ item.name }}"
+        annotations:
+          rgpd.rotated_at: "{{ rgpd_rotated_at }}"
+          rgpd.rotate_by:  "{{ rgpd_rotate_by }}"
+          rgpd.rotation_policy_days: "{{ rgpd_rotation_days | string }}"
+          rgpd.reason: "{{ item.reason }}"
+  loop: "{{ rgpd_secrets_rotate_180 }}"
+
+- name: Annotate observed-only secrets (metadata-only)
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: patched
+    merge_type: merge
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        namespace: "{{ item.namespace }}"
+        name: "{{ item.name }}"
+        annotations:
+          rgpd.observed: "true"
+          rgpd.reason: "{{ item.reason }}"
+  loop: "{{ rgpd_secrets_observe }}"
+
+- name: Deploy RGPD watcher SA + RBAC (cluster-wide read-only for secrets)
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    apply: true
+    definition: "{{ lookup('template','sa-rbac.yaml.j2') }}"
+
+- name: Deploy RGPD rotation watcher CronJob
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    apply: true
+    definition: "{{ lookup('template','cj-rotation-watch.yaml.j2') }}"

@@ -1,0 +1,5 @@
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/velero   1/1     1            1           21d
+
+NAME                          READY   STATUS    RESTARTS   AGE
+pod/velero-869b896886-5g8hf   1/1     Running   0          21d

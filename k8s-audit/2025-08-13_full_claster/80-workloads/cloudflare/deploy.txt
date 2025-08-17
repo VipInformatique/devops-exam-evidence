@@ -1,0 +1,2 @@
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS    IMAGES                          SELECTOR
+cloudflared   2/2     2            2           12d   cloudflared   cloudflare/cloudflared:latest   app=cloudflared

@@ -1,0 +1,2 @@
+NAME      TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE   SELECTOR
+traefik   ClusterIP   10.43.193.42   <none>        80/TCP,443/TCP   21d   app.kubernetes.io/instance=traefik-traefik,app.kubernetes.io/name=traefik

@@ -1,0 +1,334 @@
+---
+# ansible/roles/k3s_monitoring/tasks/main.yml
+
+- name: Ensure monitoring namespace exists
+  kubernetes.core.k8s:
+    name: monitoring
+    api_version: v1
+    kind: Namespace
+    state: present
+    kubeconfig: "{{ k3s_kubeconfig }}"
+
+- name: Install Kube Prometheus Stack (flat configuration)
+  kubernetes.core.helm:
+    name: kube-prometheus-stack
+    chart_ref: prometheus-community/kube-prometheus-stack
+    release_namespace: monitoring
+    create_namespace: false
+    chart_version: "75.15.0"
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    values:
+      prometheus:
+        prometheusSpec:
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: nfs-client
+                resources:
+                  requests:
+                    storage: 10Gi
+          nodeSelector:
+            role: worker
+          additionalScrapeConfigs:
+            - job_name: "node-exporter"
+              static_configs:
+                - targets: ["192.168.100.2:9100", "192.168.100.3:9100", "192.168.100.4:9100"]
+        service:
+          type: LoadBalancer
+          loadBalancerIP: 192.168.88.14
+          loadBalancerSourceRanges:
+           - 10.10.10.0/24  
+          annotations:
+            metallb.universe.tf/allow-shared-ip: monitoring
+          port: 9090
+      
+      # =============================================================
+      # ============== GRAFANA CONFIGURATION ========================
+      # =============================================================
+      grafana:
+        nodeSelector:
+          role: worker
+        adminPassword: "{{ grafana_admin_password }}"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        persistence:
+          enabled: true
+          type: pvc
+          storageClassName: nfs-client
+          accessModes: [ReadWriteOnce]
+          size: 2Gi
+
+        sidecar:
+          dashboards:
+            enabled: true
+            searchNamespace: ALL
+          datasources:
+            enabled: true
+            defaultDatasourceEnabled: false
+            additionalDataSources:
+              - name: Prometheus
+                type: prometheus
+                url: http://kube-prometheus-stack-prometheus:9090
+                access: proxy
+                isDefault: true
+                uid: prometheus
+                jsonData:
+                  httpMethod: POST
+                  manageAlerts: true
+                  prometheusType: Prometheus
+                  prometheusVersion: "2.45.0"
+              - name: Loki
+                type: loki
+                url: http://loki:3100
+                access: proxy
+                uid: loki
+                isDefault: false
+                jsonData:
+                  maxLines: "1000"
+
+        service:
+          type: LoadBalancer
+          loadBalancerIP: 192.168.88.14
+          annotations:
+            metallb.universe.tf/allow-shared-ip: monitoring
+          loadBalancerSourceRanges:
+           - 10.10.10.0/24
+          port: 3000
+
+      prometheus-node-exporter:
+        tolerations:
+          - key: "node-role.kubernetes.io/control-plane"
+            operator: "Exists"
+      
+      alertmanager:
+        alertmanagerSpec:
+          nodeSelector:
+            role: worker
+          containers:
+            - name: alertmanager
+              env:
+                - name: TZ
+                  value: "Europe/Paris" 
+            
+      kube-state-metrics:
+        nodeSelector:
+          role: worker
+
+      prometheusOperator:
+        nodeSelector:
+          role: worker
+
+    timeout: "15m0s"
+    wait: true
+
+
+- name: Install Loki
+  kubernetes.core.helm:
+    name: loki
+    chart_ref: grafana/loki
+    release_namespace: monitoring
+    create_namespace: false
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    values:
+      lokiCanary:
+        enabled: false
+      test:
+        enabled: false
+      deploymentMode: SingleBinary
+      monitoring:
+        serviceMonitor:
+          enabled: true
+          labels:
+            release: kube-prometheus-stack
+      read:
+        replicas: 0
+      write:
+        replicas: 0
+      backend:
+        replicas: 0
+      gateway:
+        enabled: false
+      memberlist:
+        enabled: false
+      chunksCache:
+        enabled: false
+      resultsCache:
+        enabled: false
+      loki:
+        auth_enabled: false
+        storage:
+          type: filesystem
+        commonConfig:
+          replication_factor: 1
+        limits_config:
+          retention_period: 7d
+          volume_enabled: true
+        schemaConfig:
+          configs:
+            - from: "2023-01-01"  # changed from 2025 to 2023
+              store: tsdb
+              object_store: filesystem
+              schema: v13
+              index:
+                prefix: loki_index_  # changed from index_ to loki_index_
+                period: 24h
+      persistence:
+        enabled: true
+        storageClassName: nfs-client
+        size: 10Gi
+      singleBinary:
+        nodeSelector:
+          role: worker
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: "1"
+            memory: 2Gi
+        service:
+          type: LoadBalancer
+          loadBalancerIP: 192.168.88.14
+          loadBalancerSourceRanges:
+           - 10.10.10.0/24                       # restricted to VPN
+          annotations:
+            metallb.universe.tf/allow-shared-ip: monitoring
+          port: 3100
+    timeout: "5m0s"
+    wait: true
+
+
+- name: Install Promtail (inline values)
+  kubernetes.core.helm:
+    name: promtail
+    chart_ref: grafana/promtail
+    release_namespace: monitoring
+    create_namespace: false
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    values:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 300m
+          memory: 256Mi
+      config:
+        logLevel: info
+        clients:
+          - url: http://loki.monitoring.svc:3100/loki/api/v1/push
+        snippets:
+          extraRelabelConfigs:
+            # readable labels from pods
+            - action: replace
+              source_labels: ['__meta_kubernetes_pod_label_app']
+              target_label: app
+              regex: '(.+)'
+              replacement: '$1'
+            - action: replace
+              source_labels: ['__meta_kubernetes_pod_label_app_kubernetes_io_name']
+              target_label: app_kubernetes_io_name
+              regex: '(.+)'
+              replacement: '$1'
+            - action: replace
+              source_labels: ['__meta_kubernetes_pod_label_app_kubernetes_io_component']
+              target_label: component
+              regex: '(.+)'
+              replacement: '$1'
+
+            # fallback for "service"
+            - action: replace
+              source_labels: ['service','app']
+              target_label: service
+              regex: '^$;(.+)'
+              replacement: '$1'
+            - action: replace
+              source_labels: ['service','app_kubernetes_io_name']
+              target_label: service
+              regex: '^$;(.+)'
+              replacement: '$1'
+            - action: replace
+              source_labels: ['service','component']
+              target_label: service
+              regex: '^$;(.+)'
+              replacement: '$1'
+            - action: replace
+              source_labels: ['service','__meta_kubernetes_pod_name']
+              target_label: service
+              regex: '^$;(.+)'
+              replacement: '$1'
+            - action: replace
+              source_labels: ['service','service_name']
+              target_label: service
+              regex: '^$;(.+)'
+              replacement: '$1'
+
+          pipelineStages:
+            # 1) Globally: drop lines consisting only of "pppp..." or "NUMBER ppppp..."
+            - match:
+                selector: '{namespace=~".+"}'
+                stages:
+                  - drop:
+                      expression: '^([0-9]{6,}\s+)?[pP]{8,}\s*$'
+
+            # 2) Noise from Loki itself
+            - match:
+                selector: '{namespace="monitoring", pod=~"loki-.*", container="loki"}'
+                stages:
+                  - drop:
+                      expression: 'executing query|starting to tail logs|ended tailing logs|roundtrip\.go:|engine\.go:|metrics\.go:'
+
+            # 3) Noise from Loki plugin in Grafana (optional)
+            - match:
+                selector: '{namespace="monitoring", app_kubernetes_io_name="grafana"}'
+                stages:
+                  - drop:
+                      expression: 'logger=tsdb\.loki|pluginId=loki|endpoint=queryData'
+                  
+    timeout: "5m0s"
+    wait: true
+
+- name: Check monitoring pods status
+  ansible.builtin.command: kubectl get pods -n monitoring
+  environment:
+    KUBECONFIG: "{{ k3s_kubeconfig }}"
+  register: monitoring_pods
+  changed_when: false
+
+- name: Check monitoring services status
+  ansible.builtin.command: kubectl get svc -n monitoring
+  environment:
+    KUBECONFIG: "{{ k3s_kubeconfig }}"
+  register: monitoring_services
+  changed_when: false
+
+- name: Monitoring deployment summary
+  ansible.builtin.debug:
+    msg:
+      - "=== POD STATUS ==="
+      - "{{ monitoring_pods.stdout_lines }}"
+      - "=== SERVICE STATUS ==="
+      - "{{ monitoring_services.stdout_lines }}"
+      - "=== ACCESS ==="
+      - "Grafana: http://192.168.88.14:3000 (admin/{{ grafana_admin_password }})"
+      - "Prometheus: http://192.168.88.14:9090"
+      - "Loki: http://192.168.88.14:3100"
+      - "=== DASHBOARDS ==="
+      - "Node Exporter Full (1860): http://192.168.88.14:3000/d/rYdddlPWk"
+      - "Kubernetes Cluster (15202): http://192.168.88.14:3000/d/k8s-cluster"
+      - "=== DATASOURCES ==="
+      - "Prometheus: http://prometheus:9090"
+      - "Loki: http://loki:3100"
+      - "Alertmanager: http://alertmanager:9093"

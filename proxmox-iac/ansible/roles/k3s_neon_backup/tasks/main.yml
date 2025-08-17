@@ -1,0 +1,60 @@
+- name: Create namespace
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template','ns.yaml.j2') | from_yaml }}"
+
+- name: Create PV and PVC for Synology NFS
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ item }}"
+  loop: "{{ lookup('template','pv-pvc.yaml.j2') | from_yaml_all | list }}"
+
+- name: Create secret with Neon and DB creds
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template','secret.yaml.j2') | from_yaml }}"
+
+- name: Create nightly dump CronJob
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template','cj-dump.yaml.j2') | from_yaml }}"
+
+- name: Create hourly marker CronJob
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template','cj-restorepoint.yaml.j2') | from_yaml }}"
+
+- name: Create cleanup CronJob
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template','cj-cleanup.yaml.j2') | from_yaml }}"
+
+- name: Create marker cleanup CronJob
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template','cj-marker-cleanup.yaml.j2') | from_yaml }}"
+
+- name: Apply RBAC readonly (ns {{ backup_ns }})
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template','rbac-readonly.yaml.j2') }}"
+
+- name: Create dump smoke-check CronJob
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template','cj-dump-smoke.yaml.j2') }}"
+
+- name: Create RBAC export CronJob
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template','cj-rbac-export.yaml.j2') }}"

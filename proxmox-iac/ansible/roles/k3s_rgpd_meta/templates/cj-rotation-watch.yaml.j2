@@ -1,0 +1,105 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rgpd-rotation-watch
+  namespace: {{ rgpd_namespace }}
+spec:
+  schedule: "{{ rgpd_watch_schedule }}"
+  timeZone: "{{ rgpd_watch_tz }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          serviceAccountName: rgpd-watcher-sa
+          restartPolicy: Never
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: {{ rgpd_pvc_name }}
+          containers:
+            - name: watch
+              image: {{ rgpd_watch_image }}
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              command: ["/bin/sh","-lc"]
+              args:
+                - |
+                    set -eu
+                    apk add --no-cache curl jq tzdata coreutils >/dev/null
+
+                    export TZ={{ rgpd_watch_tz }}
+
+                    API="https://kubernetes.default.svc"
+                    SA_TOKEN="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+                    CACERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                    HDR_AUTH="Authorization: Bearer ${SA_TOKEN}"
+
+                    # Zbieraj wszystkie Secrets z paginacją (bez process substitution)
+                    tmp="/tmp/secrets.json"
+                    page="/tmp/page.json"
+                    echo '{"items":[]}' > "$tmp"
+                    cont=""
+                    while :; do
+                    url="$API/api/v1/secrets?limit=500"
+                    [ -n "$cont" ] && url="$url&continue=$cont"
+                    curl -fsS --cacert "$CACERT" -H "$HDR_AUTH" "$url" > "$page"
+                    jq -s '.[0].items + .[1].items | {items:.}' "$tmp" "$page" > "$tmp.m" && mv "$tmp.m" "$tmp"
+                    cont="$(jq -r '.metadata.continue // ""' "$page")"
+                    [ -z "$cont" ] && break
+                    done
+
+                    now_epoch="$(date +%s)"
+                    out_dir="/backups/audit"
+                    mkdir -p "$out_dir"
+                    out_csv="$out_dir/rgpd-rotation-$(date +%F).csv"
+                    latest_csv="$out_dir/rgpd-rotation-latest.csv"
+
+                    echo "namespace,secret,rotated_at,rotate_by,days_remaining,status" > "$out_csv"
+
+                    overdue=0
+                    soon=0
+
+                    jq -r '
+                    .items[]
+                    | select(.metadata.annotations["rgpd.rotate_by"] != null)
+                    | [
+                        .metadata.namespace,
+                        .metadata.name,
+                        (.metadata.annotations["rgpd.rotated_at"] // ""),
+                        .metadata.annotations["rgpd.rotate_by"]
+                        ] | @tsv
+                    ' "$tmp" | while IFS="$(printf '\t')" read -r ns name rot_at rot_by; do
+                        if ! date -d "$rot_by" >/dev/null 2>&1; then
+                        echo "$ns,$name,$rot_at,$rot_by,,invalid_date" >> "$out_csv"
+                        continue
+                        fi
+                        due_epoch="$(date -d "$rot_by" +%s)"
+                        days_left=$(( (due_epoch - now_epoch) / 86400 ))
+                        status="ok"
+                        if [ "$days_left" -lt 0 ]; then
+                        status="overdue"
+                        overdue=$((overdue+1))
+                        elif [ "$days_left" -le 7 ]; then
+                        status="due_soon"
+                        soon=$((soon+1))
+                        fi
+                        echo "$ns,$name,$rot_at,$rot_by,$days_left,$status" >> "$out_csv"
+                    done
+
+                    cp -f "$out_csv" "$latest_csv"
+
+                    echo "[INFO] RGPD rotation report written to $out_csv"
+                    echo "[INFO] Summary: overdue=$overdue, due_soon=$soon"
+
+                    if [ "$overdue" -gt 0 ]; then
+                    warn="$out_dir/rotation-WARNING-$(date +%F).txt"
+                    echo "Overdue secrets detected on $(date)" > "$warn"
+                    echo "See: $out_csv" >> "$warn"
+                    echo "[WARN] Overdue secrets found, failing job to surface alert."
+                    exit 1
+                    fi

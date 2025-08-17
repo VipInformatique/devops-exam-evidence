@@ -1,0 +1,428 @@
+Name:         [1mpost-rbac-2025-08-17-124656[0m
+Namespace:    velero
+Labels:       velero.io/storage-location=r2
+Annotations:  velero.io/resource-timeout=10m0s
+              velero.io/source-cluster-k8s-gitversion=v1.30.1+k3s1
+              velero.io/source-cluster-k8s-major-version=1
+              velero.io/source-cluster-k8s-minor-version=30
+
+Phase:  [32mCompleted[0m
+
+
+Namespaces:
+  Included:  prod, dev, traefik, monitoring
+  Excluded:  argocd
+
+Resources:
+  Included:        *
+  Excluded:        <none>
+  Cluster-scoped:  auto
+
+Label selector:  <none>
+
+Or label selector:  <none>
+
+Storage Location:  r2
+
+Velero-Native Snapshot PVs:  false
+Snapshot Move Data:          false
+Data Mover:                  velero
+
+TTL:  720h0m0s
+
+CSISnapshotTimeout:    10m0s
+ItemOperationTimeout:  4h0m0s
+
+Hooks:  <none>
+
+Backup Format Version:  1.1.0
+
+Started:    2025-08-17 12:46:57 +0200 CEST
+Completed:  2025-08-17 12:47:24 +0200 CEST
+
+Expiration:  2025-09-16 12:46:57 +0200 CEST
+
+Total items to be backed up:  351
+Items backed up:              351
+
+Resource List:
+  apiextensions.k8s.io/v1/CustomResourceDefinition:
+    - alertmanagers.monitoring.coreos.com
+    - ingressroutes.traefik.io
+    - prometheuses.monitoring.coreos.com
+    - prometheusrules.monitoring.coreos.com
+    - servicemonitors.monitoring.coreos.com
+  apps/v1/ControllerRevision:
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-55b999888f
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-5c4fb486b5
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-5ffb84bc67
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-66bbb5fdc5
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-68976658c7
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-6dc5775c5c
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-75db875489
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-7bbc996bd7
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-7dd5f67cf7
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-7f8968bddb
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-84bd964b89
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter-667fbcc7bb
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter-d94b75d7
+    - monitoring/loki-55b8f7544f
+    - monitoring/loki-56fbcdb9b
+    - monitoring/loki-679f8df44d
+    - monitoring/loki-6c9d5c9d95
+    - monitoring/loki-6cf6c866cf
+    - monitoring/loki-754dc5dc8
+    - monitoring/loki-758874555c
+    - monitoring/loki-9f94665ff
+    - monitoring/prometheus-kube-prometheus-stack-prometheus-56b457cd56
+    - monitoring/prometheus-kube-prometheus-stack-prometheus-664788467f
+    - monitoring/prometheus-kube-prometheus-stack-prometheus-79467bcffb
+    - monitoring/promtail-54f47b9b98
+    - monitoring/promtail-5bc54f566
+    - monitoring/promtail-5f94d68554
+    - monitoring/promtail-695b4f4c49
+    - monitoring/promtail-69cccb6656
+    - monitoring/promtail-6d6cf6c78
+    - monitoring/promtail-74f5868bc4
+    - monitoring/promtail-76bc96867c
+    - monitoring/promtail-77567d4548
+    - monitoring/promtail-8c9db8c6b
+    - monitoring/promtail-9446cf479
+  apps/v1/DaemonSet:
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter
+    - monitoring/promtail
+  apps/v1/Deployment:
+    - dev/devistor-app-dev
+    - monitoring/kube-prometheus-stack-grafana
+    - monitoring/kube-prometheus-stack-kube-state-metrics
+    - monitoring/kube-prometheus-stack-operator
+    - prod/devistor-app-prod
+    - traefik/traefik
+  apps/v1/ReplicaSet:
+    - dev/devistor-app-dev-74b9b64d57
+    - dev/devistor-app-dev-79688c77bb
+    - dev/devistor-app-dev-7b8c46cd98
+    - dev/devistor-app-dev-d66f77f57
+    - monitoring/kube-prometheus-stack-grafana-6f87f575f4
+    - monitoring/kube-prometheus-stack-grafana-7747c6794c
+    - monitoring/kube-prometheus-stack-grafana-f97dbccb5
+    - monitoring/kube-prometheus-stack-kube-state-metrics-5995bfd5cd
+    - monitoring/kube-prometheus-stack-kube-state-metrics-5b67f9bb7
+    - monitoring/kube-prometheus-stack-kube-state-metrics-667ff8d5b
+    - monitoring/kube-prometheus-stack-operator-66dd6df657
+    - monitoring/kube-prometheus-stack-operator-6cd649
+    - monitoring/kube-prometheus-stack-operator-745c99b4b4
+    - prod/devistor-app-prod-576f5b69b6
+    - prod/devistor-app-prod-5965d8db54
+    - prod/devistor-app-prod-66bdc97594
+    - prod/devistor-app-prod-785b84cb7b
+    - traefik/traefik-75595ffcf7
+  apps/v1/StatefulSet:
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager
+    - monitoring/loki
+    - monitoring/prometheus-kube-prometheus-stack-prometheus
+  discovery.k8s.io/v1/EndpointSlice:
+    - dev/devistor-service-dev-tcl99
+    - monitoring/alertmanager-operated-49z59
+    - monitoring/kube-prometheus-stack-alertmanager-5m6xw
+    - monitoring/kube-prometheus-stack-grafana-2wnlw
+    - monitoring/kube-prometheus-stack-kube-state-metrics-6hdjj
+    - monitoring/kube-prometheus-stack-operator-xj6wh
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter-67pk7
+    - monitoring/kube-prometheus-stack-prometheus-tzhvc
+    - monitoring/loki-headless-dhbsl
+    - monitoring/loki-kd9mk
+    - monitoring/loki-memberlist-c66s7
+    - monitoring/prometheus-operated-z7b7x
+    - prod/devistor-service-prod-6vrxh
+    - traefik/traefik-jvqmt
+  monitoring.coreos.com/v1/Alertmanager:
+    - monitoring/kube-prometheus-stack-alertmanager
+  monitoring.coreos.com/v1/Prometheus:
+    - monitoring/kube-prometheus-stack-prometheus
+  monitoring.coreos.com/v1/PrometheusRule:
+    - monitoring/devistor-alerts
+    - monitoring/devistor-crashloop-test
+    - monitoring/kube-prometheus-stack-alertmanager.rules
+    - monitoring/kube-prometheus-stack-config-reloaders
+    - monitoring/kube-prometheus-stack-etcd
+    - monitoring/kube-prometheus-stack-general.rules
+    - monitoring/kube-prometheus-stack-k8s.rules.container-cpu-usage-seconds-tot
+    - monitoring/kube-prometheus-stack-k8s.rules.container-memory-cache
+    - monitoring/kube-prometheus-stack-k8s.rules.container-memory-rss
+    - monitoring/kube-prometheus-stack-k8s.rules.container-memory-swap
+    - monitoring/kube-prometheus-stack-k8s.rules.container-memory-working-set-by
+    - monitoring/kube-prometheus-stack-k8s.rules.container-resource
+    - monitoring/kube-prometheus-stack-k8s.rules.pod-owner
+    - monitoring/kube-prometheus-stack-kube-apiserver-availability.rules
+    - monitoring/kube-prometheus-stack-kube-apiserver-burnrate.rules
+    - monitoring/kube-prometheus-stack-kube-apiserver-histogram.rules
+    - monitoring/kube-prometheus-stack-kube-apiserver-slos
+    - monitoring/kube-prometheus-stack-kube-prometheus-general.rules
+    - monitoring/kube-prometheus-stack-kube-prometheus-node-recording.rules
+    - monitoring/kube-prometheus-stack-kube-scheduler.rules
+    - monitoring/kube-prometheus-stack-kube-state-metrics
+    - monitoring/kube-prometheus-stack-kubelet.rules
+    - monitoring/kube-prometheus-stack-kubernetes-apps
+    - monitoring/kube-prometheus-stack-kubernetes-resources
+    - monitoring/kube-prometheus-stack-kubernetes-storage
+    - monitoring/kube-prometheus-stack-kubernetes-system
+    - monitoring/kube-prometheus-stack-kubernetes-system-apiserver
+    - monitoring/kube-prometheus-stack-kubernetes-system-controller-manager
+    - monitoring/kube-prometheus-stack-kubernetes-system-kube-proxy
+    - monitoring/kube-prometheus-stack-kubernetes-system-kubelet
+    - monitoring/kube-prometheus-stack-kubernetes-system-scheduler
+    - monitoring/kube-prometheus-stack-node-exporter
+    - monitoring/kube-prometheus-stack-node-exporter.rules
+    - monitoring/kube-prometheus-stack-node-network
+    - monitoring/kube-prometheus-stack-node.rules
+    - monitoring/kube-prometheus-stack-prometheus
+    - monitoring/kube-prometheus-stack-prometheus-operator
+  monitoring.coreos.com/v1/ServiceMonitor:
+    - monitoring/kube-prometheus-stack-alertmanager
+    - monitoring/kube-prometheus-stack-apiserver
+    - monitoring/kube-prometheus-stack-coredns
+    - monitoring/kube-prometheus-stack-grafana
+    - monitoring/kube-prometheus-stack-kube-controller-manager
+    - monitoring/kube-prometheus-stack-kube-etcd
+    - monitoring/kube-prometheus-stack-kube-proxy
+    - monitoring/kube-prometheus-stack-kube-scheduler
+    - monitoring/kube-prometheus-stack-kube-state-metrics
+    - monitoring/kube-prometheus-stack-kubelet
+    - monitoring/kube-prometheus-stack-operator
+    - monitoring/kube-prometheus-stack-prometheus
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter
+    - monitoring/loki
+  networking.k8s.io/v1/NetworkPolicy:
+    - dev/allow-dns-egress
+    - dev/allow-egress-db-web
+    - dev/allow-egress-dns-and-db
+    - dev/allow-from-traefik
+    - dev/allow-ingress-from-traefik
+    - dev/default-deny
+    - dev/default-deny-all-ingress
+    - prod/allow-dns-egress
+    - prod/allow-egress-db-web
+    - prod/allow-egress-dns-and-db
+    - prod/allow-from-traefik
+    - prod/allow-ingress-from-traefik
+    - prod/default-deny
+    - prod/default-deny-all-ingress
+  rbac.authorization.k8s.io/v1/ClusterRole:
+    - kube-prometheus-stack-grafana-clusterrole
+    - kube-prometheus-stack-kube-state-metrics
+    - kube-prometheus-stack-operator
+    - kube-prometheus-stack-prometheus
+    - loki-clusterrole
+    - promtail
+    - traefik-traefik
+  rbac.authorization.k8s.io/v1/ClusterRoleBinding:
+    - kube-prometheus-stack-grafana-clusterrolebinding
+    - kube-prometheus-stack-kube-state-metrics
+    - kube-prometheus-stack-operator
+    - kube-prometheus-stack-prometheus
+    - loki-clusterrolebinding
+    - promtail
+    - traefik-traefik
+  rbac.authorization.k8s.io/v1/Role:
+    - dev/devistor-read-config
+    - monitoring/kube-prometheus-stack-grafana
+    - prod/devistor-read-config
+  rbac.authorization.k8s.io/v1/RoleBinding:
+    - dev/devistor-read-config
+    - monitoring/kube-prometheus-stack-grafana
+    - prod/devistor-read-config
+  traefik.io/v1alpha1/IngressRoute:
+    - dev/devistor-ingress-dev
+    - prod/devistor-ingress-prod
+    - traefik/traefik-dashboard
+  v1/ConfigMap:
+    - dev/devistor-config-dev
+    - dev/kube-root-ca.crt
+    - monitoring/kube-prometheus-stack-alertmanager-overview
+    - monitoring/kube-prometheus-stack-apiserver
+    - monitoring/kube-prometheus-stack-cluster-total
+    - monitoring/kube-prometheus-stack-controller-manager
+    - monitoring/kube-prometheus-stack-etcd
+    - monitoring/kube-prometheus-stack-grafana
+    - monitoring/kube-prometheus-stack-grafana-config-dashboards
+    - monitoring/kube-prometheus-stack-grafana-datasource
+    - monitoring/kube-prometheus-stack-grafana-overview
+    - monitoring/kube-prometheus-stack-k8s-coredns
+    - monitoring/kube-prometheus-stack-k8s-resources-cluster
+    - monitoring/kube-prometheus-stack-k8s-resources-multicluster
+    - monitoring/kube-prometheus-stack-k8s-resources-namespace
+    - monitoring/kube-prometheus-stack-k8s-resources-node
+    - monitoring/kube-prometheus-stack-k8s-resources-pod
+    - monitoring/kube-prometheus-stack-k8s-resources-workload
+    - monitoring/kube-prometheus-stack-k8s-resources-workloads-namespace
+    - monitoring/kube-prometheus-stack-kubelet
+    - monitoring/kube-prometheus-stack-namespace-by-pod
+    - monitoring/kube-prometheus-stack-namespace-by-workload
+    - monitoring/kube-prometheus-stack-node-cluster-rsrc-use
+    - monitoring/kube-prometheus-stack-node-rsrc-use
+    - monitoring/kube-prometheus-stack-nodes
+    - monitoring/kube-prometheus-stack-nodes-aix
+    - monitoring/kube-prometheus-stack-nodes-darwin
+    - monitoring/kube-prometheus-stack-persistentvolumesusage
+    - monitoring/kube-prometheus-stack-pod-total
+    - monitoring/kube-prometheus-stack-prometheus
+    - monitoring/kube-prometheus-stack-proxy
+    - monitoring/kube-prometheus-stack-scheduler
+    - monitoring/kube-prometheus-stack-workload-total
+    - monitoring/kube-root-ca.crt
+    - monitoring/loki
+    - monitoring/loki-runtime
+    - monitoring/prometheus-kube-prometheus-stack-prometheus-rulefiles-0
+    - prod/devistor-config-prod
+    - prod/kube-root-ca.crt
+    - prod/restore-canary
+    - traefik/kube-root-ca.crt
+  v1/Endpoints:
+    - dev/devistor-service-dev
+    - monitoring/alertmanager-operated
+    - monitoring/kube-prometheus-stack-alertmanager
+    - monitoring/kube-prometheus-stack-grafana
+    - monitoring/kube-prometheus-stack-kube-state-metrics
+    - monitoring/kube-prometheus-stack-operator
+    - monitoring/kube-prometheus-stack-prometheus
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter
+    - monitoring/loki
+    - monitoring/loki-headless
+    - monitoring/loki-memberlist
+    - monitoring/prometheus-operated
+    - prod/devistor-service-prod
+    - traefik/traefik
+  v1/Event:
+    - monitoring/kube-prometheus-stack-grafana.18567b4206f45a51
+    - monitoring/kube-prometheus-stack-prometheus.18567b4204ce74cb
+    - monitoring/loki.18567b420af8e4a3
+  v1/Namespace:
+    - dev
+    - monitoring
+    - prod
+    - traefik
+  v1/PersistentVolume:
+    - pvc-101ef0bd-2d47-4548-9923-f49cf987f9f8
+    - pvc-1cd78c16-5266-40dc-bed2-2dcba2ff64a0
+    - pvc-65428c85-d78f-4b6e-8bd1-1deb77ee37b4
+    - pvc-926439ec-bf49-4777-88f4-ba8b1cc70859
+    - pvc-ae6c3591-8733-402c-bfc4-906e7a343889
+    - pvc-bbd35702-7478-421a-aab2-edb8884617b8
+  v1/PersistentVolumeClaim:
+    - dev/flask-uploads-pvc-dev
+    - monitoring/kube-prometheus-stack-grafana
+    - monitoring/prometheus-kube-prometheus-stack-prometheus-db-prometheus-kube-prometheus-stack-prometheus-0
+    - monitoring/storage-loki-0
+    - prod/canary-pvc
+    - prod/flask-uploads-pvc-prod
+  v1/Pod:
+    - dev/devistor-app-dev-79688c77bb-5jn8l
+    - dev/devistor-app-dev-79688c77bb-k5chp
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-0
+    - monitoring/kube-prometheus-stack-grafana-f97dbccb5-vdxgk
+    - monitoring/kube-prometheus-stack-kube-state-metrics-667ff8d5b-54vxx
+    - monitoring/kube-prometheus-stack-operator-6cd649-nzxbm
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter-27q9p
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter-c9wcb
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter-cfqkf
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter-p7g28
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter-vgkb7
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter-xmlf6
+    - monitoring/loki-0
+    - monitoring/prometheus-kube-prometheus-stack-prometheus-0
+    - monitoring/promtail-5c9pt
+    - monitoring/promtail-7fmvk
+    - monitoring/promtail-9z47j
+    - monitoring/promtail-f6fgz
+    - monitoring/promtail-hlvqj
+    - monitoring/promtail-w6h8n
+    - prod/devistor-app-prod-576f5b69b6-9vbbw
+    - prod/devistor-app-prod-576f5b69b6-snbnd
+    - traefik/traefik-75595ffcf7-5xrcg
+    - traefik/traefik-75595ffcf7-hvwxg
+    - traefik/traefik-75595ffcf7-shxn6
+  v1/Secret:
+    - dev/devistor-secrets-dev
+    - dev/devistor-secrets-prod
+    - dev/dockerhub-creds
+    - monitoring/alertmanager-config
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-cluster-tls-config
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-generated
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-tls-assets-0
+    - monitoring/alertmanager-kube-prometheus-stack-alertmanager-web-config
+    - monitoring/kube-prometheus-stack-admission
+    - monitoring/kube-prometheus-stack-grafana
+    - monitoring/kube-prometheus-stack-prometheus-scrape-confg
+    - monitoring/prometheus-kube-prometheus-stack-prometheus
+    - monitoring/prometheus-kube-prometheus-stack-prometheus-thanos-prometheus-http-client-file
+    - monitoring/prometheus-kube-prometheus-stack-prometheus-tls-assets-0
+    - monitoring/prometheus-kube-prometheus-stack-prometheus-web-config
+    - monitoring/promtail
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v28
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v29
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v30
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v31
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v32
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v33
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v34
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v35
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v36
+    - monitoring/sh.helm.release.v1.kube-prometheus-stack.v37
+    - monitoring/sh.helm.release.v1.loki.v1
+    - monitoring/sh.helm.release.v1.loki.v2
+    - monitoring/sh.helm.release.v1.loki.v3
+    - monitoring/sh.helm.release.v1.loki.v4
+    - monitoring/sh.helm.release.v1.loki.v5
+    - monitoring/sh.helm.release.v1.loki.v6
+    - monitoring/sh.helm.release.v1.loki.v7
+    - monitoring/sh.helm.release.v1.loki.v8
+    - monitoring/sh.helm.release.v1.loki.v9
+    - monitoring/sh.helm.release.v1.promtail.v10
+    - monitoring/sh.helm.release.v1.promtail.v11
+    - monitoring/sh.helm.release.v1.promtail.v12
+    - monitoring/sh.helm.release.v1.promtail.v13
+    - monitoring/sh.helm.release.v1.promtail.v14
+    - monitoring/sh.helm.release.v1.promtail.v15
+    - monitoring/sh.helm.release.v1.promtail.v16
+    - monitoring/sh.helm.release.v1.promtail.v17
+    - monitoring/sh.helm.release.v1.promtail.v8
+    - monitoring/sh.helm.release.v1.promtail.v9
+    - prod/devistor-secrets-prod
+    - prod/dockerhub-creds
+    - traefik/sh.helm.release.v1.traefik.v1
+    - traefik/sh.helm.release.v1.traefik.v2
+  v1/Service:
+    - dev/devistor-service-dev
+    - monitoring/alertmanager-operated
+    - monitoring/kube-prometheus-stack-alertmanager
+    - monitoring/kube-prometheus-stack-grafana
+    - monitoring/kube-prometheus-stack-kube-state-metrics
+    - monitoring/kube-prometheus-stack-operator
+    - monitoring/kube-prometheus-stack-prometheus
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter
+    - monitoring/loki
+    - monitoring/loki-headless
+    - monitoring/loki-memberlist
+    - monitoring/prometheus-operated
+    - prod/devistor-service-prod
+    - traefik/traefik
+  v1/ServiceAccount:
+    - dev/default
+    - dev/devistor-sa
+    - monitoring/default
+    - monitoring/kube-prometheus-stack-alertmanager
+    - monitoring/kube-prometheus-stack-grafana
+    - monitoring/kube-prometheus-stack-kube-state-metrics
+    - monitoring/kube-prometheus-stack-operator
+    - monitoring/kube-prometheus-stack-prometheus
+    - monitoring/kube-prometheus-stack-prometheus-node-exporter
+    - monitoring/loki
+    - monitoring/promtail
+    - prod/default
+    - prod/devistor-sa
+    - traefik/default
+    - traefik/traefik
+
+Backup Volumes: <none included>

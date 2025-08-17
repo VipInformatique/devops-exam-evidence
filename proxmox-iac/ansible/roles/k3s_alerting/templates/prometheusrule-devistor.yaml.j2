@@ -1,0 +1,308 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: devistor-alerts
+  namespace: {{ monitoring_ns }}
+spec:
+  groups:
+  - name: k8s-critical
+    rules:
+    - alert: HighNodeCPU
+      expr: avg by (instance) (rate(node_cpu_seconds_total{mode!="idle"}[5m])) > 0.9
+      for: 5m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "{% raw %}CPU > 90% sur {{ $labels.instance }}{% endraw %}"
+        description: "Surcharge durable détectée"
+
+  - name: k8s-warning
+    rules:
+    - alert: PodCrashLoopBackOff
+      expr: max by (namespace, pod, container) (kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}) == 1
+      for: 5m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}CrashLoopBackOff: {{ $labels.namespace }}/{{ $labels.pod }}{% endraw %}"
+        description: "{% raw %}Kontener {{ $labels.container }} restartuje się od ≥5m.{% endraw %}"
+
+    - alert: NodeDiskPressure
+      expr: kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+      for: 5m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}Węzeł pod presją dysku: {{ $labels.node }}{% endraw %}"
+        description: "Sprawdź wolne miejsce / I/O."
+
+    - alert: NodeMemoryPressure
+      expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+      for: 5m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}Węzeł pod presją pamięci: {{ $labels.node }}{% endraw %}"
+        description: "Sprawdź zużycie RAM i limity cgroup."
+
+  - name: node-filesystem-usage
+    rules:
+    - alert: NodeFilesystemUsageHigh
+      expr: |
+        (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs|nsfs|proc|sysfs|cgroup2?|fuse.*"}
+              / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs|nsfs|proc|sysfs|cgroup2?|fuse.*"})) > 0.80
+      for: 15m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}Wysokie użycie FS (≥80%) na {{ $labels.instance }}:{{ $labels.mountpoint }}{% endraw %}"
+        description: "{% raw %}Sprawdź miejsce / rotacje logów / cleanup. mount={{ $labels.mountpoint }}{% endraw %}"
+
+    - alert: NodeFilesystemUsageCritical
+      expr: |
+        (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs|nsfs|proc|sysfs|cgroup2?|fuse.*"}
+              / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|ramfs|nsfs|proc|sysfs|cgroup2?|fuse.*"})) > 0.90
+      for: 5m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "{% raw %}Krytyczne użycie FS (≥90%) na {{ $labels.instance }}:{{ $labels.mountpoint }}{% endraw %}"
+        description: "{% raw %}Ryzyko braku miejsca. mount={{ $labels.mountpoint }}{% endraw %}"
+
+    - alert: NodeFilesystemInodesLow
+      expr: |
+        (node_filesystem_files_free{fstype!~"tmpfs|overlay|squashfs|ramfs|nsfs|proc|sysfs|cgroup2?|fuse.*"}
+         / node_filesystem_files{fstype!~"tmpfs|overlay|squashfs|ramfs|nsfs|proc|sysfs|cgroup2?|fuse.*"}) < 0.10
+      for: 15m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}Niski zapas inode’ów (≤10%) na {{ $labels.instance }}:{{ $labels.mountpoint }}{% endraw %}"
+        description: "{% raw %}Wyczyść małe pliki. mount={{ $labels.mountpoint }}{% endraw %}"
+
+  - name: pvc-usage
+    rules:
+    - alert: PVCStorageUsageHigh
+      expr: |
+        (1 - (kubelet_volume_stats_available_bytes
+              / kubelet_volume_stats_capacity_bytes)) > 0.85
+      for: 15m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}PVC zajęte w ≥85% ({{ $labels.persistentvolumeclaim }}){% endraw %}"
+        description: "{% raw %}Namespace={{ $labels.namespace }} PVC={{ $labels.persistentvolumeclaim }}{% endraw %}"
+
+    - alert: PVCStorageUsageCritical
+      expr: |
+        (1 - (kubelet_volume_stats_available_bytes
+              / kubelet_volume_stats_capacity_bytes)) > 0.95
+      for: 5m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "{% raw %}PVC zajęte w ≥95% ({{ $labels.persistentvolumeclaim }}){% endraw %}"
+        description: "{% raw %}Namespace={{ $labels.namespace }} PVC={{ $labels.persistentvolumeclaim }}{% endraw %}"
+
+  - name: k8s-critical-extra
+    rules:
+    - alert: K8sNodeNotReady
+      expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+      for: 5m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "{% raw %}Node NotReady: {{ $labels.node }}{% endraw %}"
+        description: "Węzeł niedostępny ≥5m."
+
+  - name: app-slo
+    rules:
+    - alert: API5xxRateHigh
+      expr: |
+        rate(http_requests_total{job="devistor",namespace="prod",status=~"5.."}[5m])
+        /
+        rate(http_requests_total{job="devistor",namespace="prod"}[5m]) > 0.05
+      for: 10m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "Błędy 5xx > 5% w API (prod)"
+        description: "Sprawdź zależności/upstreamy i rollouty."
+
+    - alert: APIP95LatencyApproachingSLO
+      expr: |
+        (
+          1000 *
+          histogram_quantile(
+            0.95,
+            sum by (le) (
+              rate(http_request_duration_seconds_bucket{job="devistor",namespace="prod",route!~"/(metrics|health)"}[5m])
+            )
+          ) > 240
+        )
+        and
+        sum(rate(http_request_duration_seconds_count{job="devistor",namespace="prod",route!~"/(metrics|health)"}[5m])) > 0.2
+      for: 10m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "p95 latencji zbliża się do SLO (prod)"
+        description: "{% raw %}p95={{ printf \"%.0f\" $value }} ms (>240 ms), tylko przy realnym ruchu{% endraw %}"
+
+    - alert: APIP95LatencyOverSLO
+      expr: |
+        (
+          1000 *
+          histogram_quantile(
+            0.95,
+            sum by (le) (
+              rate(http_request_duration_seconds_bucket{job="devistor",namespace="prod",route!~"/(metrics|health)"}[5m])
+            )
+          ) > 300
+        )
+        and
+        sum(rate(http_request_duration_seconds_count{job="devistor",namespace="prod",route!~"/(metrics|health)"}[5m])) > 0.2
+      for: 15m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "p95 latencji przekracza SLO 300ms (prod)"
+        description: "{% raw %}p95={{ printf \"%.0f\" $value }} ms (>300 ms), przy ruchu >0.2 RPS{% endraw %}"
+
+  # --- SLO recording rules: długie okno (30d) + krótkie (5m) i burn-rate ---
+  - name: slo-devistor
+    rules:
+    - record: slo:devistor:latency_lt_300ms:ratio5m
+      expr: |
+        sum(rate(http_request_duration_seconds_bucket{job="devistor",namespace="prod",route!~"/(metrics|health)", le="0.3"}[5m]))
+        /
+        sum(rate(http_request_duration_seconds_count{job="devistor",namespace="prod",route!~"/(metrics|health)"}[5m]))
+    - record: slo:devistor:latency_lt_300ms:ratio30d
+      expr: |
+        sum(increase(http_request_duration_seconds_bucket{job="devistor",namespace="prod",route!~"/(metrics|health)", le="0.3"}[30d]))
+        /
+        sum(increase(http_request_duration_seconds_count{job="devistor",namespace="prod",route!~"/(metrics|health)"}[30d]))
+    - record: slo:devistor:availability:success_ratio5m
+      expr: |
+        1 - (
+          sum(rate(http_requests_total{job="devistor",namespace="prod",status=~"5.."}[5m]))
+          /
+          sum(rate(http_requests_total{job="devistor",namespace="prod"}[5m]))
+        )
+    - record: slo:devistor:availability:success_ratio30d
+      expr: |
+        1 - (
+          sum(increase(http_requests_total{job="devistor",namespace="prod",status=~"5.."}[30d]))
+          /
+          sum(increase(http_requests_total{job="devistor",namespace="prod"}[30d]))
+        )
+    - record: slo:devistor:latency:error_budget_burn_1h
+      expr: |
+        (1 - (
+          sum(increase(http_request_duration_seconds_bucket{job="devistor",namespace="prod",route!~"/(metrics|health)", le="0.3"}[1h]))
+          /
+          sum(increase(http_request_duration_seconds_count{job="devistor",namespace="prod",route!~"/(metrics|health)"}[1h]))
+        )) / 0.01
+    - record: slo:devistor:latency:error_budget_burn_6h
+      expr: |
+        (1 - (
+          sum(increase(http_request_duration_seconds_bucket{job="devistor",namespace="prod",route!~"/(metrics|health)", le="0.3"}[6h]))
+          /
+          sum(increase(http_request_duration_seconds_count{job="devistor",namespace="prod",route!~"/(metrics|health)"}[6h]))
+        )) / 0.01
+    - record: slo:devistor:avail:error_budget_burn_1h
+      expr: |
+        (
+          sum(increase(http_requests_total{job="devistor",namespace="prod",status=~"5.."}[1h]))
+          /
+          sum(increase(http_requests_total{job="devistor",namespace="prod"}[1h]))
+        ) / 0.005
+    - record: slo:devistor:avail:error_budget_burn_6h
+      expr: |
+        (
+          sum(increase(http_requests_total{job="devistor",namespace="prod",status=~"5.."}[6h]))
+          /
+          sum(increase(http_requests_total{job="devistor",namespace="prod"}[6h]))
+        ) / 0.005
+
+  - name: app-slo-burn-alerts
+    rules:
+    - alert: LatencySLOFastBurn
+      expr: slo:devistor:latency:error_budget_burn_1h > 14 and slo:devistor:latency:error_budget_burn_6h > 14
+      for: 10m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "Szybkie palenie budżetu SLO latencji"
+        description: "Burn rate >14 w 1h i 6h — ryzyko wyczerpania budżetu < 1 doby."
+    - alert: AvailabilitySLOFastBurn
+      expr: slo:devistor:avail:error_budget_burn_1h > 14 and slo:devistor:avail:error_budget_burn_6h > 14
+      for: 10m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "Szybkie palenie budżetu SLO dostępności"
+        description: "Burn rate >14 w 1h i 6h — natychmiastowa reakcja."
+    - alert: LatencySLOSlowBurn
+      expr: slo:devistor:latency:error_budget_burn_6h > 1
+      for: 2h
+      labels: { severity: "warning" }
+      annotations:
+        summary: "Powolne palenie budżetu SLO latencji"
+        description: "Burn rate >1 w 6h — zaplanuj działania korygujące."
+    - alert: AvailabilitySLOSlowBurn
+      expr: slo:devistor:avail:error_budget_burn_6h > 1
+      for: 2h
+      labels: { severity: "warning" }
+      annotations:
+        summary: "Powolne palenie budżetu SLO dostępności"
+        description: "Burn rate >1 w 6h — zaplanuj działania korygujące."
+
+  # --- INFRA: RAM, TEMPERATURA, DOSTĘPNOŚĆ PROXMOX ---
+  - name: infra-proxmox
+    rules:
+    - alert: NodeMemoryUsageHigh
+      expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.90
+      for: 10m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}RAM > 90% na {{ $labels.instance }} #infra #memory #ram #high-usage #warning{% endraw %}"
+        description: "Sprawdź procesy i limity cgroup."
+    - alert: NodeHighTemperatureHwmon
+      expr: max without (sensor, chip) (node_hwmon_temp_celsius) > 70
+      for: 10m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}Wysoka temperatura >70°C na {{ $labels.instance }} (hwmon) #infra #temperature #hardware #warning{% endraw %}"
+        description: "Zweryfikuj chłodzenie/kurz/obciążenie."
+    - alert: NodeHighTemperatureThermal
+      expr: max by (instance) (node_thermal_zone_temp / 1000) > 70
+      for: 10m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}Wysoka temperatura >70°C na {{ $labels.instance }} (thermal_zone) #infra #temperature #hardware #warning{% endraw %}"
+        description: "Zweryfikuj chłodzenie/kurz/obciążenie."
+    - alert: ProxmoxHostDown
+      expr: up{job=~"node-exporter|pve|prometheus-pve-exporter", node=~"proxmox-.*"} == 0
+      for: 2m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "{% raw %}Hôte Proxmox indisponible: {{ $labels.instance }} #infra #proxmox #host-down #critical{% endraw %}"
+        description: "Brak scrapingu metryk z hosta."
+
+  # --- BACKUPY: Velero, Proxmox Backup Server (PBS), dump DB ---
+  - name: backups-and-velero
+    rules:
+    - alert: VeleroBackupFailedRecently
+      expr: sum(increase(velero_backup_attempt_total{phase=~"Failed|PartiallyFailed"}[15m])) > 0
+      for: 5m
+      labels: { severity: "critical" }
+      annotations:
+        summary: "{% raw %}Velero: nowa porażka backupu #backup #velero #failure #critical{% endraw %}"
+        description: "Sprawdź logi Velero i storage."
+    - alert: VeleroBackupStale24h
+      expr: (time() - max by (schedule) (velero_backup_last_successful_timestamp)) > 24*60*60
+      for: 30m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}Velero: brak sukcesu >24h (schedule={{ $labels.schedule }}) #backup #velero #stale #warning{% endraw %}"
+        description: "Zweryfikuj job i dostęp do obiektu."
+    - alert: PBSVmBackupStale24h
+      expr: (time() - max by (vm_id, vm_name) (pbs_snapshot_vm_last_timestamp)) > 24*60*60
+      for: 30m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}PBS: stary backup VM >24h ({{ $labels.vm_name }} / {{ $labels.vm_id }}) #backup #pbs #proxmox #stale #warning{% endraw %}"
+        description: "Sprawdź harmonogram i datastore."
+    - alert: DatabaseDumpStale24h
+      expr: (time() - max(vip_backup_db_last_success_unixtime)) > 24*60*60
+      for: 30m
+      labels: { severity: "warning" }
+      annotations:
+        summary: "{% raw %}Dump DB: brak sukcesu >24h #backup #database #dump #stale #warning{% endraw %}"
+        description: "Zweryfikuj CronJob/Pushgateway/połączenia."

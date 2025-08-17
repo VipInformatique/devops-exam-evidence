@@ -1,0 +1,2 @@
+pvc-926439ec-bf49-4777-88f4-ba8b1cc70859   100Mi      RWO            Delete           Bound    prod/canary-pvc                                                                                           local-path         <unset>                          56m
+pvc-e127591e-d1f4-41f0-93fa-788a8ff8acc8   100Mi      RWO            Delete           Bound    prod-restore/canary-pvc                                                                                   local-path         <unset>                          14m

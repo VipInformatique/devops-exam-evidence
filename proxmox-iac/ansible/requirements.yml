@@ -1,0 +1,8 @@
+# ansible/requirements.yml
+---
+collections:
+  - name: linuxhq.cloudflare
+    version: "1.2.0"
+  - name: kubernetes.core
+  - name: community.kubernetes
+  - name: community.general

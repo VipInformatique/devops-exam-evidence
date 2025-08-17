@@ -1,0 +1,30 @@
+auto lo
+iface lo inet loopback
+
+# The primary network interface (physical)
+iface {{ proxmox_physical_nic }} inet manual
+
+# VLAN 100 - Management Network
+auto {{ proxmox_physical_nic }}.100
+iface {{ proxmox_physical_nic }}.100 inet manual
+    vlan-raw-device {{ proxmox_physical_nic }}
+
+auto vmbr0
+iface vmbr0 inet static
+    address {{ ip_vlan100 }}
+    gateway {{ proxmox_vlan100_gateway }}
+    bridge-ports {{ proxmox_physical_nic }}.100
+    bridge-stp off
+    bridge-fd 0
+
+# VLAN 88 - Cluster Network
+auto {{ proxmox_physical_nic }}.88
+iface {{ proxmox_physical_nic }}.88 inet manual
+    vlan-raw-device {{ proxmox_physical_nic }}
+
+auto vmbr1
+iface vmbr1 inet static
+    address {{ ip_vlan88 }}
+    bridge-ports {{ proxmox_physical_nic }}.88
+    bridge-stp off
+    bridge-fd 0

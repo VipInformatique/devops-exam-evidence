@@ -1,0 +1,6 @@
+NAME                                     ADDRESSTYPE   PORTS       ENDPOINTS     AGE
+argocd-applicationset-controller-dqw2s   IPv4          7000        10.42.2.33    21d
+argocd-dex-server-pq9gk                  IPv4          5556,5557   10.42.2.21    21d
+argocd-redis-6pcqw                       IPv4          6379        10.42.5.144   21d
+argocd-repo-server-ztxkw                 IPv4          8081        10.42.0.222   21d
+argocd-server-ljcnv                      IPv4          8080,8080   10.42.0.225   21d

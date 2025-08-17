@@ -1,0 +1,23 @@
+clientVersion:
+  buildDate: "2025-06-17T18:41:31Z"
+  compiler: gc
+  gitCommit: a57b6f7709f6c2722b92f07b8b4c48210a51fc40
+  gitTreeState: clean
+  gitVersion: v1.33.2
+  goVersion: go1.24.4
+  major: "1"
+  minor: "33"
+  platform: linux/amd64
+kustomizeVersion: v5.6.0
+serverVersion:
+  buildDate: "2024-05-22T23:14:20Z"
+  compiler: gc
+  gitCommit: 80978b5b9a97908c5520c5ee51984e544e168859
+  gitTreeState: clean
+  gitVersion: v1.30.1+k3s1
+  goVersion: go1.22.2
+  major: "1"
+  minor: "30"
+  platform: linux/amd64
+
+WARNING: version difference between client (1.33) and server (1.30) exceeds the supported minor version skew of +/-1

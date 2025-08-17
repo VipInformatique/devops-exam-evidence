@@ -1,0 +1,11 @@
+#!/bin/bash
+
+BACKUP_DIR="/mnt/pve/synology-nfs/dump"
+DATE=$(date +%F)
+FILE="$BACKUP_DIR/proxmox-etc-backup-$DATE.tar.gz"
+
+# Tworzenie backupu
+tar -czf "$FILE" /etc/pve /etc/network/interfaces /etc/hosts
+
+# Czyszczenie starszych niż 7 dni
+find "$BACKUP_DIR" -type f -name 'proxmox-etc-backup-*.tar.gz' -mtime +7 -delete

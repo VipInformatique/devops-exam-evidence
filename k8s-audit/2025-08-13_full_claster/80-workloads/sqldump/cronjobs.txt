@@ -1,0 +1,8 @@
+NAME                  SCHEDULE      TIMEZONE       SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+cleanup-backups       30 3 * * *    Europe/Paris   False     0        13h             4d19h
+dump-smoke-check      0 4 * * *     Europe/Paris   False     0        13h             3d19h
+neon-dump-nightly     0 3 * * *     Europe/Paris   False     0        14h             4d19h
+neon-hourly-marker    0 * * * *     Europe/Paris   False     0        28m             4d19h
+neon-marker-cleanup   15 * * * *    Europe/Paris   False     0        13m             4d19h
+rbac-export           5 4 * * MON   Europe/Paris   False     0        2d13h           3d19h
+rgpd-rotation-watch   0 8 * * *     Europe/Paris   False     0        9h              3d19h

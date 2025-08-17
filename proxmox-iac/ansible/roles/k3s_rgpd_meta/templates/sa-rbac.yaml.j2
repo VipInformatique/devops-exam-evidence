@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rgpd-watcher-sa
+  namespace: {{ rgpd_namespace }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rgpd-watcher-read
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get","list","watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rgpd-watcher-read-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rgpd-watcher-read
+subjects:
+  - kind: ServiceAccount
+    name: rgpd-watcher-sa
+    namespace: {{ rgpd_namespace }}

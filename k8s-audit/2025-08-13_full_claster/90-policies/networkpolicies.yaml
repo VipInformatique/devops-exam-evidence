@@ -1,0 +1,167 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    creationTimestamp: "2025-07-23T09:59:43Z"
+    generation: 1
+    name: allow-dns-egress
+    namespace: dev
+    resourceVersion: "226105"
+    uid: 07146af9-7e06-40f8-9a3f-ac7a6b957340
+  spec:
+    egress:
+    - ports:
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+    podSelector: {}
+    policyTypes:
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    creationTimestamp: "2025-07-23T09:59:43Z"
+    generation: 2
+    name: allow-egress-db-web
+    namespace: dev
+    resourceVersion: "241430"
+    uid: 338fd2aa-f030-48b7-8795-8e4ea2dc458d
+  spec:
+    egress:
+    - ports:
+      - port: 5432
+        protocol: TCP
+      - port: 443
+        protocol: TCP
+      - port: 80
+        protocol: TCP
+    podSelector:
+      matchLabels:
+        app: devistor-dev
+    policyTypes:
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    creationTimestamp: "2025-07-23T09:59:42Z"
+    generation: 2
+    name: allow-ingress-from-traefik
+    namespace: dev
+    resourceVersion: "230935"
+    uid: c6875e88-d282-42a2-a9c4-ca239b98a420
+  spec:
+    ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: traefik
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: traefik
+      ports:
+      - port: 8000
+        protocol: TCP
+    podSelector:
+      matchLabels:
+        app: devistor-dev
+    policyTypes:
+    - Ingress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    creationTimestamp: "2025-07-23T09:59:41Z"
+    generation: 1
+    name: default-deny-all-ingress
+    namespace: dev
+    resourceVersion: "226100"
+    uid: 55bbfa8c-ac97-4700-9f90-ea51c845532c
+  spec:
+    podSelector: {}
+    policyTypes:
+    - Ingress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    creationTimestamp: "2025-07-23T10:49:20Z"
+    generation: 1
+    name: allow-dns-egress
+    namespace: prod
+    resourceVersion: "241426"
+    uid: b66c81ce-9b84-4367-a1e3-0b60c3f0ba5f
+  spec:
+    egress:
+    - ports:
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+    podSelector: {}
+    policyTypes:
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    creationTimestamp: "2025-07-23T10:49:21Z"
+    generation: 1
+    name: allow-egress-db-web
+    namespace: prod
+    resourceVersion: "241438"
+    uid: 4e31e3dc-f010-4ada-a661-24b6d4bba5d5
+  spec:
+    egress:
+    - ports:
+      - port: 5432
+        protocol: TCP
+      - port: 443
+        protocol: TCP
+      - port: 80
+        protocol: TCP
+    podSelector:
+      matchLabels:
+        app: devistor-prod
+    policyTypes:
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    creationTimestamp: "2025-07-23T10:49:18Z"
+    generation: 1
+    name: allow-ingress-from-traefik
+    namespace: prod
+    resourceVersion: "241414"
+    uid: e481f996-ff54-4361-9cd7-fef37c03b62d
+  spec:
+    ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: traefik
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: traefik
+      ports:
+      - port: 8000
+        protocol: TCP
+    podSelector:
+      matchLabels:
+        app: devistor-prod
+    policyTypes:
+    - Ingress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    creationTimestamp: "2025-07-23T10:49:17Z"
+    generation: 1
+    name: default-deny-all-ingress
+    namespace: prod
+    resourceVersion: "241403"
+    uid: 260dbd9a-b324-45aa-ae36-21272e5cd74e
+  spec:
+    podSelector: {}
+    policyTypes:
+    - Ingress
+kind: List
+metadata:
+  resourceVersion: ""

@@ -1,0 +1,255 @@
+time="2025-08-13T16:23:14Z" level=info msg="starting restore" logSource="pkg/controller/restore_controller.go:523" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Starting restore of backup velero/pre-rbac-np-2025-08-13-1812" logSource="pkg/restore/restore.go:423" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping resource customresourcedefinitions because it's cluster-scoped" logSource="pkg/restore/restore.go:2256" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping restore of resource because it cannot be resolved via discovery" logSource="pkg/restore/restore.go:2206" resource=volumesnapshotclass.snapshot.storage.k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping restore of resource because it cannot be resolved via discovery" logSource="pkg/restore/restore.go:2206" resource=volumesnapshotcontents.snapshot.storage.k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping restore of resource because it cannot be resolved via discovery" logSource="pkg/restore/restore.go:2206" resource=volumesnapshots.snapshot.storage.k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping resource persistentvolumes because it's cluster-scoped" logSource="pkg/restore/restore.go:2256" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'persistentvolumeclaims' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'serviceaccounts' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace traefik" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'secrets' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace traefik" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'configmaps' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace traefik" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'pods' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace traefik" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'replicasets.apps' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace traefik" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping restore of resource because it cannot be resolved via discovery" logSource="pkg/restore/restore.go:2206" resource=clusterclasses.cluster.x-k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace traefik" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'endpoints' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace traefik" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'services' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping resource clusterrolebindings.rbac.authorization.k8s.io because it's cluster-scoped" logSource="pkg/restore/restore.go:2256" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping resource clusterroles.rbac.authorization.k8s.io because it's cluster-scoped" logSource="pkg/restore/restore.go:2256" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'deployments.apps' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace traefik" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'endpointslices.discovery.k8s.io' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace traefik" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping restore of resource because the restore spec excludes it" logSource="pkg/restore/restore.go:2223" resource=events restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping restore of resource because the restore spec excludes it" logSource="pkg/restore/restore.go:2223" resource=ingressroutes.traefik.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace dev" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Resource 'networkpolicies.networking.k8s.io' will be restored into namespace 'prod-restore'" logSource="pkg/restore/restore.go:2293" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping namespace monitoring" logSource="pkg/restore/restore.go:2244" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping restore of resource because it cannot be resolved via discovery" logSource="pkg/restore/restore.go:2206" resource=clusterbootstraps.run.tanzu.vmware.com restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping restore of resource because it cannot be resolved via discovery" logSource="pkg/restore/restore.go:2206" resource=clusters.cluster.x-k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Skipping restore of resource because it cannot be resolved via discovery" logSource="pkg/restore/restore.go:2206" resource=clusterresourcesets.addons.cluster.x-k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for /v1, Resource=persistentvolumeclaims in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for /v1, Resource=serviceaccounts in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for /v1, Resource=secrets in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for /v1, Resource=configmaps in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for /v1, Resource=pods in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for apps/v1, Resource=replicasets in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for /v1, Resource=endpoints in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for /v1, Resource=services in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for apps/v1, Resource=deployments in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for discovery.k8s.io/v1, Resource=endpointslices in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="[debug] Creating factory for networking.k8s.io/v1, Resource=networkpolicies in namespace prod-restore" logSource="pkg/restore/restore.go:1041" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Getting client for /v1, Kind=PersistentVolumeClaim" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing item action for persistentvolumeclaims" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing AddPVFromPVCAction" cmd=/velero logSource="pkg/restore/add_pv_from_pvc_action.go:44" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Adding PV pvc-926439ec-bf49-4777-88f4-ba8b1cc70859 as an additional item to restore" cmd=/velero logSource="pkg/restore/add_pv_from_pvc_action.go:66" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Not restoring item because it's cluster-scoped" groupResource=persistentvolumes logSource="pkg/restore/restore.go:1146" name=pvc-926439ec-bf49-4777-88f4-ba8b1cc70859 namespace= restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing item action for persistentvolumeclaims" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing ChangePVCNodeSelectorAction" cmd=/velero logSource="pkg/restore/change_pvc_node_selector.go:66" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Done executing ChangePVCNodeSelectorAction" cmd=/velero logSource="pkg/restore/change_pvc_node_selector.go:138" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing item action for persistentvolumeclaims" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing ChangeStorageClassAction" cmd=/velero logSource="pkg/restore/change_storageclass_action.go:68" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Done executing ChangeStorageClassAction" cmd=/velero logSource="pkg/restore/change_storageclass_action.go:79" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Attempting to restore PersistentVolumeClaim: canary-pvc" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="the managed fields for prod-restore/canary-pvc is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Restored 1 items out of an estimated total of 23 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=canary-pvc namespace=prod-restore progress= resource=persistentvolumeclaims restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing item action for persistentvolumeclaims" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing AddPVFromPVCAction" cmd=/velero logSource="pkg/restore/add_pv_from_pvc_action.go:44" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Adding PV pvc-101ef0bd-2d47-4548-9923-f49cf987f9f8 as an additional item to restore" cmd=/velero logSource="pkg/restore/add_pv_from_pvc_action.go:66" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Not restoring item because it's cluster-scoped" groupResource=persistentvolumes logSource="pkg/restore/restore.go:1146" name=pvc-101ef0bd-2d47-4548-9923-f49cf987f9f8 namespace= restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing item action for persistentvolumeclaims" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing ChangePVCNodeSelectorAction" cmd=/velero logSource="pkg/restore/change_pvc_node_selector.go:66" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Done executing ChangePVCNodeSelectorAction" cmd=/velero logSource="pkg/restore/change_pvc_node_selector.go:94" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing item action for persistentvolumeclaims" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing ChangeStorageClassAction" cmd=/velero logSource="pkg/restore/change_storageclass_action.go:68" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Done executing ChangeStorageClassAction" cmd=/velero logSource="pkg/restore/change_storageclass_action.go:79" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Attempting to restore PersistentVolumeClaim: flask-uploads-pvc-prod" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="the managed fields for prod-restore/flask-uploads-pvc-prod is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Restored 2 items out of an estimated total of 23 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=flask-uploads-pvc-prod namespace=prod-restore progress= resource=persistentvolumeclaims restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Getting client for /v1, Kind=ServiceAccount" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing item action for serviceaccounts" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing ServiceAccountAction" cmd=/velero logSource="pkg/restore/service_account_action.go:47" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Done executing ServiceAccountAction" cmd=/velero logSource="pkg/restore/service_account_action.go:78" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Attempting to restore ServiceAccount: default" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Restored 3 items out of an estimated total of 23 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=default namespace=prod-restore progress= resource=serviceaccounts restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Getting client for /v1, Kind=Secret" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing item action for secrets" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing SecretAction" cmd=/velero logSource="pkg/restore/secret_action.go:58" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Done executing SecretAction" cmd=/velero logSource="pkg/restore/secret_action.go:69" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Attempting to restore Secret: devistor-secrets-prod" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="the managed fields for prod-restore/devistor-secrets-prod is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Restored 4 items out of an estimated total of 23 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-secrets-prod namespace=prod-restore progress= resource=secrets restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing item action for secrets" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Executing SecretAction" cmd=/velero logSource="pkg/restore/secret_action.go:58" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Done executing SecretAction" cmd=/velero logSource="pkg/restore/secret_action.go:69" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:14Z" level=info msg="Attempting to restore Secret: dockerhub-creds" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/dockerhub-creds is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 5 items out of an estimated total of 23 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=dockerhub-creds namespace=prod-restore progress= resource=secrets restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Getting client for /v1, Kind=ConfigMap" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore ConfigMap: devistor-config-prod" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-config-prod is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 6 items out of an estimated total of 23 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-config-prod namespace=prod-restore progress= resource=configmaps restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore ConfigMap: kube-root-ca.crt" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 7 items out of an estimated total of 23 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=kube-root-ca.crt namespace=prod-restore progress= resource=configmaps restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore ConfigMap: restore-canary" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/restore-canary is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 8 items out of an estimated total of 23 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=restore-canary namespace=prod-restore progress= resource=configmaps restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="prod/canary-reader is complete - skipping" logSource="pkg/restore/restore.go:1161" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 8 items out of an estimated total of 22 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=canary-reader namespace=prod-restore progress= resource=pods restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="prod/canary-writer is complete - skipping" logSource="pkg/restore/restore.go:1161" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 8 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=canary-writer namespace=prod-restore progress= resource=pods restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Getting client for /v1, Kind=Pod" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing AddPVCFromPodAction" cmd=/velero logSource="pkg/restore/add_pvc_from_pod_action.go:44" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Adding PVC prod/flask-uploads-pvc-prod as an additional item to restore" cmd=/velero logSource="pkg/restore/add_pvc_from_pod_action.go:58" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Skipping persistentvolumeclaims/prod-restore/flask-uploads-pvc-prod because it's already been restored." logSource="pkg/restore/restore.go:1174" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:68" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:81" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing InitRestoreHookPodAction" cmd=/velero logSource="pkg/restore/init_restorehook_pod_action.go:49" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Pod prod/devistor-app-prod-5965d8db54-pjkff has no init.hook.restore.velero.io/container-image annotation, no initRestoreHook in annotation" cmd=/velero logSource="internal/hook/item_hook_handler.go:386" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Handling InitRestoreHooks from RestoreSpec" cmd=/velero logSource="internal/hook/item_hook_handler.go:139" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Returning pod prod/devistor-app-prod-5965d8db54-pjkff with 0 init container(s)" cmd=/velero logSource="internal/hook/item_hook_handler.go:180" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Returning from InitRestoreHookPodAction" cmd=/velero logSource="pkg/restore/init_restorehook_pod_action.go:61" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing PodVolumeRestoreAction" cmd=/velero logSource="pkg/restore/pod_volume_restore_action.go:70" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done executing PodVolumeRestoreAction" cmd=/velero logSource="pkg/restore/pod_volume_restore_action.go:102" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore Pod: devistor-app-prod-5965d8db54-pjkff" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-app-prod-5965d8db54-pjkff is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 9 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-app-prod-5965d8db54-pjkff namespace=prod-restore progress= resource=pods restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing AddPVCFromPodAction" cmd=/velero logSource="pkg/restore/add_pvc_from_pod_action.go:44" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Adding PVC prod/flask-uploads-pvc-prod as an additional item to restore" cmd=/velero logSource="pkg/restore/add_pvc_from_pod_action.go:58" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Skipping persistentvolumeclaims/prod-restore/flask-uploads-pvc-prod because it's already been restored." logSource="pkg/restore/restore.go:1174" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:68" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:81" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing InitRestoreHookPodAction" cmd=/velero logSource="pkg/restore/init_restorehook_pod_action.go:49" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Pod prod/devistor-app-prod-5965d8db54-wf495 has no init.hook.restore.velero.io/container-image annotation, no initRestoreHook in annotation" cmd=/velero logSource="internal/hook/item_hook_handler.go:386" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Handling InitRestoreHooks from RestoreSpec" cmd=/velero logSource="internal/hook/item_hook_handler.go:139" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Returning pod prod/devistor-app-prod-5965d8db54-wf495 with 0 init container(s)" cmd=/velero logSource="internal/hook/item_hook_handler.go:180" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Returning from InitRestoreHookPodAction" cmd=/velero logSource="pkg/restore/init_restorehook_pod_action.go:61" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for pods" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing PodVolumeRestoreAction" cmd=/velero logSource="pkg/restore/pod_volume_restore_action.go:70" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done executing PodVolumeRestoreAction" cmd=/velero logSource="pkg/restore/pod_volume_restore_action.go:102" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore Pod: devistor-app-prod-5965d8db54-wf495" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-app-prod-5965d8db54-wf495 is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 10 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-app-prod-5965d8db54-wf495 namespace=prod-restore progress= resource=pods restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Getting client for apps/v1, Kind=ReplicaSet" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for replicasets.apps" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:68" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore ReplicaSet: devistor-app-prod-5965d8db54" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:81" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-app-prod-5965d8db54 is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 11 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-app-prod-5965d8db54 namespace=prod-restore progress= resource=replicasets.apps restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for replicasets.apps" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:68" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore ReplicaSet: devistor-app-prod-66bdc97594" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:81" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-app-prod-66bdc97594 is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 12 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-app-prod-66bdc97594 namespace=prod-restore progress= resource=replicasets.apps restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for replicasets.apps" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:68" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore ReplicaSet: devistor-app-prod-785b84cb7b" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:81" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-app-prod-785b84cb7b is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 13 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-app-prod-785b84cb7b namespace=prod-restore progress= resource=replicasets.apps restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Getting client for /v1, Kind=Endpoints" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore Endpoints: devistor-service-prod" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-service-prod is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 14 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-service-prod namespace=prod-restore progress= resource=endpoints restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Getting client for /v1, Kind=Service" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for services" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore Service: devistor-service-prod" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-service-prod is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 15 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-service-prod namespace=prod-restore progress= resource=services restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Getting client for apps/v1, Kind=Deployment" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing item action for deployments.apps" logSource="pkg/restore/restore.go:1379" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:68" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done executing ChangeImageNameAction" cmd=/velero logSource="pkg/restore/change_image_name_action.go:81" pluginName=velero restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore Deployment: devistor-app-prod" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-app-prod is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 16 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-app-prod namespace=prod-restore progress= resource=deployments.apps restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Getting client for discovery.k8s.io/v1, Kind=EndpointSlice" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore EndpointSlice: devistor-service-prod-6vrxh" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/devistor-service-prod-6vrxh is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 17 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=devistor-service-prod-6vrxh namespace=prod-restore progress= resource=endpointslices.discovery.k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Getting client for networking.k8s.io/v1, Kind=NetworkPolicy" logSource="pkg/restore/restore.go:1007" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore NetworkPolicy: allow-dns-egress" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/allow-dns-egress is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 18 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=allow-dns-egress namespace=prod-restore progress= resource=networkpolicies.networking.k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore NetworkPolicy: allow-egress-db-web" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/allow-egress-db-web is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 19 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=allow-egress-db-web namespace=prod-restore progress= resource=networkpolicies.networking.k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore NetworkPolicy: allow-ingress-from-traefik" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/allow-ingress-from-traefik is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 20 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=allow-ingress-from-traefik namespace=prod-restore progress= resource=networkpolicies.networking.k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore status includes excludes: <nil>" logSource="pkg/restore/restore.go:1372" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Attempting to restore NetworkPolicy: default-deny-all-ingress" logSource="pkg/restore/restore.go:1536" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="the managed fields for prod-restore/default-deny-all-ingress is patched" logSource="pkg/restore/restore.go:1737" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Restored 21 items out of an estimated total of 21 (estimate will change throughout the restore)" logSource="pkg/restore/restore.go:755" name=default-deny-all-ingress namespace=prod-restore progress= resource=networkpolicies.networking.k8s.io restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Waiting for all pod volume restores to complete" logSource="pkg/restore/restore.go:635" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done waiting for all pod volume restores to complete" logSource="pkg/restore/restore.go:651" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Waiting for all post-restore-exec hooks to complete" logSource="pkg/restore/restore.go:655" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="Done waiting for all post-restore exec hooks to complete" logSource="pkg/restore/restore.go:663" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=warning msg="Namespace prod-restore, resource restore warning: could not restore, ConfigMap \"kube-root-ca.crt\" already exists. Warning: the in-cluster version is different than the backed-up version" logSource="pkg/controller/restore_controller.go:578" restore=velero/sim-restore-1823
+time="2025-08-13T16:23:15Z" level=info msg="restore completed" logSource="pkg/controller/restore_controller.go:581" restore=velero/sim-restore-1823

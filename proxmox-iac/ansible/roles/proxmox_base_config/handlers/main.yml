@@ -1,0 +1,6 @@
+---
+# handlers file for proxmox_base_config
+- name: Restart networking
+  ansible.builtin.systemd:
+    name: networking
+    state: restarted

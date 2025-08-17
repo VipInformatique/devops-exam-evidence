@@ -1,0 +1,32 @@
+---
+# tasks file for k3s agents
+
+# STEP 1: Download installation script (was missing before)
+- name: Download installation script to worker node
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /usr/local/bin/k3s_install.sh
+    mode: '0755'
+
+# STEP 2: Run installation script (this task already existed)
+- name: Install agent
+  ansible.builtin.shell: |
+    INSTALL_K3S_VERSION="{{ k3s_version }}" \
+    K3S_URL="https://{{ vip_address }}:6443" \
+    K3S_TOKEN="{{ hostvars[groups['k3s_masters'][0]].k3s_token }}" \
+    /usr/local/bin/k3s_install.sh
+  args:
+    creates: /etc/systemd/system/k3s-agent.service
+  notify: restart k3s
+
+- name: Label worker nodes with role=worker
+  ansible.builtin.shell: |
+    kubectl label node {{ item }} role=worker --overwrite
+  loop:
+    - k8s-worker-01
+    - k8s-worker-02
+    - k8s-worker-03
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ k3s_kubeconfig }}"   
+  run_once: true

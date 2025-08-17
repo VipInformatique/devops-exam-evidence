@@ -1,0 +1,125 @@
+---
+# Purpose: Create least-privilege RBAC and attach dedicated ServiceAccounts to Deployments.
+
+- name: "RBAC | Create ServiceAccount devistor-sa (automount disabled)"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: devistor-sa
+        namespace: "{{ item.name }}"
+      automountServiceAccountToken: false
+  loop: "{{ namespaces }}"
+
+- name: "RBAC | Create Role (read-only: ConfigMaps & Secrets)"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+        name: devistor-read-config
+        namespace: "{{ item.name }}"
+      rules:
+        - apiGroups: [""]
+          resources: ["configmaps","secrets"]
+          verbs: ["get","list","watch"]
+  loop: "{{ namespaces }}"
+
+- name: "RBAC | Bind Role to ServiceAccount (RoleBinding)"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: devistor-read-config
+        namespace: "{{ item.name }}"
+      subjects:
+        - kind: ServiceAccount
+          name: devistor-sa
+          namespace: "{{ item.name }}"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: Role
+        name: devistor-read-config
+  loop: "{{ namespaces }}"
+
+# 1) Upewnij się, że Deployment istnieje (lepszy komunikat, jeśli nazwa by się nie zgadzała)
+- name: "RBAC | Ensure target Deployment exists"
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ item.name }}"
+    name: "{{ item.deploy }}"
+  register: dep_info
+  failed_when: (dep_info.resources | length) == 0
+  loop: "{{ namespaces }}"
+
+# 2) PATCH strategic-merge: ustaw SA i automount=false bez dotykania selector/containers
+- name: "RBAC | Patch Deployment PodSpec (serviceAccountName + automountServiceAccountToken=false)"
+  kubernetes.core.k8s:
+    state: present
+    merge_type: strategic-merge
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: "{{ item.deploy }}"
+        namespace: "{{ item.name }}"
+      spec:
+        template:
+          spec:
+            serviceAccountName: devistor-sa
+            automountServiceAccountToken: false
+  loop: "{{ namespaces }}"
+
+# 3) (Opcjonalnie) weryfikacja, że PodTemplate ma ustawione wartości
+- name: "RBAC | Verify PodTemplate uses SA and automount=false"
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ item.name }}"
+    name: "{{ item.deploy }}"
+  register: dep_after
+  loop: "{{ namespaces }}"
+  failed_when: >
+    (dep_after.resources | length) == 0 or
+    (dep_after.resources[0].spec.template.spec.serviceAccountName | default('')) != 'devistor-sa' or
+    (dep_after.resources[0].spec.template.spec.automountServiceAccountToken | default(true)) != false
+
+
+# Verification — explicit PASS/FAIL using `kubectl auth can-i`
+- name: "RBAC | EXPECT YES (get/list/watch)"
+  ansible.builtin.command: >
+    kubectl auth can-i
+    --as=system:serviceaccount:{{ item.name }}:devistor-sa
+    {{ item.verb }} {{ item.resource }} -n {{ item.name }}
+  register: rbac_yes
+  changed_when: false
+  failed_when: rbac_yes.stdout is not search("yes")
+  loop:
+    - { name: "prod", verb: "get",   resource: "configmaps" }
+    - { name: "prod", verb: "list",  resource: "secrets" }
+    - { name: "prod", verb: "watch", resource: "secrets" }
+    - { name: "dev",  verb: "get",   resource: "configmaps" }
+    - { name: "dev",  verb: "list",  resource: "secrets" }
+    - { name: "dev",  verb: "watch", resource: "secrets" }
+
+- name: "RBAC | EXPECT NO (create/update/delete)"
+  ansible.builtin.command: >
+    kubectl auth can-i
+    --as=system:serviceaccount:{{ item.name }}:devistor-sa
+    {{ item.verb }} {{ item.resource }} -n {{ item.name }}
+  register: rbac_no
+  changed_when: false
+  failed_when: rbac_no.stdout is search("yes")
+  loop:
+    - { name: "prod", verb: "create", resource: "secrets" }
+    - { name: "prod", verb: "update", resource: "configmaps" }
+    - { name: "prod", verb: "delete", resource: "secrets" }
+    - { name: "dev",  verb: "create", resource: "secrets" }
+    - { name: "dev",  verb: "update", resource: "configmaps" }
+    - { name: "dev",  verb: "delete", resource: "secrets" }

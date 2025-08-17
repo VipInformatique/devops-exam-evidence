@@ -1,0 +1,10 @@
+NAME                                 READY   STATUS       RESTARTS   AGE     IP            NODE            NOMINATED NODE   READINESS GATES
+cleanup-backups-29247930-cmmm2       0/1     Completed    0          2d13h   <none>        k8s-master-02   <none>           <none>
+cleanup-backups-29249370-r9qlh       0/1     Completed    0          37h     <none>        k8s-master-02   <none>           <none>
+cleanup-backups-29250810-bf8kt       0/1     Completed    0          13h     <none>        k8s-master-02   <none>           <none>
+dump-smoke-check-29250840-gl6nz      0/1     Completed    0          13h     <none>        k8s-master-02   <none>           <none>
+neon-dump-nightly-29250780-zb7l7     0/1     Completed    0          14h     <none>        k8s-master-02   <none>           <none>
+neon-hourly-marker-29251620-8rdf9    0/1     Completed    0          28m     10.42.4.127   k8s-master-02   <none>           <none>
+neon-marker-cleanup-29251635-pzf7t   0/1     Completed    0          13m     10.42.4.128   k8s-master-02   <none>           <none>
+rbac-export-29247965-ntmmv           0/1     StartError   0          2d13h   <none>        k8s-master-02   <none>           <none>
+rgpd-rotation-watch-29251080-2tm58   0/1     Completed    0          9h      <none>        k8s-master-02   <none>           <none>

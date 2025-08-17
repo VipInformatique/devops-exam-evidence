@@ -1,0 +1,2 @@
+NAME                                               READY   STATUS    RESTARTS   AGE   IP           NODE            NOMINATED NODE   READINESS GATES
+nfs-subdir-external-provisioner-8547467568-6qz2j   1/1     Running   0          12d   10.42.1.52   k8s-worker-01   <none>           <none>

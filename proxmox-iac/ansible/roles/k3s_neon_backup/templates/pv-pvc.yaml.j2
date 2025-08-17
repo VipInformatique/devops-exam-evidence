@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ pv_name }}
+spec:
+  capacity:
+    storage: {{ pv_capacity }}
+  accessModes: ["ReadWriteMany"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ storage_class }}
+  nfs:
+    server: {{ nfs_server }}
+    path: {{ nfs_path }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ pvc_name }}
+  namespace: {{ backup_ns }}
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: {{ pvc_request }}
+  storageClassName: {{ storage_class }}

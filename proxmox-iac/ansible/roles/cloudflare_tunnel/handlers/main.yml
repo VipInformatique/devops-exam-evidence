@@ -1,0 +1,10 @@
+---
+# ansible/roles/cloudflared_install/handlers/main.yml
+- name: Restart cloudflared
+  ansible.builtin.command: >
+    kubectl rollout restart deployment cloudflared-deployment
+    -n {{ cloudflare_ns }}
+    --kubeconfig {{ cloudflared_kubeconfig }}
+  changed_when: true
+
+

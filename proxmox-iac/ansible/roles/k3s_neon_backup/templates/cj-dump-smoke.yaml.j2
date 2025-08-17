@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dump-smoke-check
+  namespace: {{ backup_ns }}
+spec:
+  schedule: "{{ smoke_schedule | default('0 4 * * *') }}"
+  timeZone: "{{ marker_tz | default('Europe/Paris') }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: check
+            image: {{ img_pg }}  # postgres:17-alpine
+            volumeMounts:
+            - { name: b, mountPath: /backups }
+            command: ["/bin/sh","-c"]
+            args:
+              - |
+                set -euo pipefail
+                f=$(ls -1t /backups/neon_*.dump 2>/dev/null | head -1 || true)
+                mkdir -p /backups/health
+                [ -n "$f" ] || { echo "no dump"; date +%s > /backups/health/last.fail; exit 1; }
+                pg_restore -l "$f" >/dev/null \
+                  && date +%s > /backups/health/last.ok \
+                  || { date +%s > /backups/health/last.fail; exit 1; }
+          volumes:
+          - name: b
+            persistentVolumeClaim: { claimName: {{ pvc_name }} }

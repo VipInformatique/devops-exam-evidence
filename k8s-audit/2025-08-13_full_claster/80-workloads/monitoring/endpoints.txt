@@ -1,0 +1,12 @@
+NAME                                             ENDPOINTS                                                             AGE
+alertmanager-operated                            10.42.3.108:9094,10.42.3.108:9094,10.42.3.108:9093                    21d
+kube-prometheus-stack-alertmanager               10.42.3.108:8080,10.42.3.108:9093                                     21d
+kube-prometheus-stack-grafana                    10.42.1.68:3000                                                       21d
+kube-prometheus-stack-kube-state-metrics         10.42.1.65:8080                                                       21d
+kube-prometheus-stack-operator                   10.42.1.66:10250                                                      21d
+kube-prometheus-stack-prometheus                 10.42.2.36:9090,10.42.2.36:8080                                       21d
+kube-prometheus-stack-prometheus-node-exporter   192.168.88.10:9100,192.168.88.11:9100,192.168.88.6:9100 + 3 more...   21d
+loki                                             10.42.1.82:9095,10.42.1.82:3100                                       21d
+loki-headless                                    10.42.1.82:3100                                                       21d
+loki-memberlist                                  10.42.1.82:7946                                                       21d
+prometheus-operated                              10.42.2.36:9090                                                       21d

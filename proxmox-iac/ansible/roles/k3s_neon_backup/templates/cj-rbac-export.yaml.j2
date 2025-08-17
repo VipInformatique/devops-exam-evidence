@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rbac-export
+  namespace: {{ backup_ns }}
+spec:
+  schedule: "{{ rbac_export_schedule | default('5 4 * * MON') }}"
+  timeZone: "{{ marker_tz | default('Europe/Paris') }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: default
+          containers:
+          - name: kubectl
+            image: registry.k8s.io/kubectl:v1.30.3
+            volumeMounts:
+            - { name: b, mountPath: /backups }
+            command: ["/bin/sh","-c"]
+            args:
+              - |
+                set -e
+                out="/backups/audit/rbac-$(date +%F).yaml"
+                mkdir -p /backups/audit
+                kubectl -n {{ backup_ns }} get role,rolebinding -o yaml > "$out"
+          volumes:
+          - name: b
+            persistentVolumeClaim: { claimName: {{ pvc_name }} }

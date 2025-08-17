@@ -1,0 +1,16 @@
+---
+- name: Deploy ArgoCD Ingress (Traefik)
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    src: "{{ role_path }}/files/argocd-ingressroute.yaml"
+  tags: ["argocd", "ingress"]
+
+# - name: Deploy Grafana Ingress (Traefik)
+#   kubernetes.core.k8s:
+#     kubeconfig: "{{ k3s_kubeconfig }}"
+#     state: present
+#     src: "{{ role_path }}/files/grafana-ingressroute.yaml"
+#   tags: ["grafana", "ingress"] 
+
+  

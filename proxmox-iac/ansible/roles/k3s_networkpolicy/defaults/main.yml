@@ -1,0 +1,20 @@
+---
+# Purpose: Enforce namespace-level default deny, allow ingress only from Traefik, and allow egress only to DNS + Postgres.
+namespaces:
+  - name: prod
+    app_label_key: app
+    app_label_value: devistor-prod
+  - name: dev
+    app_label_key: app
+    app_label_value: devistor-dev
+
+traefik_namespace: "traefik"
+
+# CoreDNS location for DNS egress
+kube_dns_ns: "kube-system"
+kube_dns_label_key: "k8s-app"
+kube_dns_label_val: "kube-dns"
+
+# DB egress (Neon) — start wide; later restrict to Neon allowlist CIDR(s)
+neon_cidr: "0.0.0.0/0"
+neon_port: 5432

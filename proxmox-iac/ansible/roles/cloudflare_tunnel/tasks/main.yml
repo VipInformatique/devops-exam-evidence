@@ -1,0 +1,69 @@
+---
+- name: Create Cloudflare namespace
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig  }}"
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: cloudflare
+  ignore_errors: true  # if it already exists
+
+- name: Render Cloudflared manifest
+  template:                    
+    src: cloudflared.yaml.j2
+    dest: /tmp/cloudflared.yaml
+
+- name: Deploy Cloudflared resources
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    src: /tmp/cloudflared.yaml   
+
+- name: Add credentials secret directly from home directory
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    namespace: cloudflare
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: cloudflared-credentials
+      type: Opaque
+      data:
+        credentials.json: "{{ lookup('file', cloudflared_credentials_path) | b64encode }}"
+  when: cloudflare_tunnel_id is defined
+
+- name: CLOUDFLARED | Build list of DNS records to create
+  ansible.builtin.set_fact:
+    cloudflare_dns_records: "{{ (cloudflare_dns_records | default([])) + [dns_rec] }}"
+  vars:
+    _h: "{{ item.hostname }}"
+    _sub: >-
+      {% set zone = '.' + zone_name %}
+      {{ _h[0:(_h|length - zone|length)] if _h.endswith(zone) else _h }}
+    dns_rec:
+      record: "{{ '@' if _h == zone_name else _sub }}"
+      type: "CNAME"
+      value: "{{ cloudflare_tunnel_id }}.cfargotunnel.com"
+      proxied: true
+  loop: "{{ cloudflared_tunnel_routes }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: "CLOUDFLARED | Ensure CNAME records exist in Cloudflare"
+  community.general.cloudflare_dns:
+    zone: "{{ zone_name }}"
+    record: "{{ item.record }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    proxied: "{{ item.proxied }}"
+    state: present
+    api_token: "{{ cf_api_token }}"
+  loop: "{{ cloudflare_dns_records }}"
+  loop_control:
+    label: "{{ item.record }}"
+  delegate_to: localhost
+  run_once: true
+  ignore_errors: true

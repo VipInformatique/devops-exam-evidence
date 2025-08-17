@@ -1,0 +1,41 @@
+- name: Krok 1 Wczytaj zawartość szablonu do pamięci (po stronie Ansible)
+  set_fact:
+    desired_config: "{{ lookup('template', 'datacenter.fw.j2') }}"
+  delegate_to: localhost  
+  run_once: true          
+
+- name: Krok 2 Wczytaj obecną konfigurację z serwera Proxmox
+  slurp:
+    src: /etc/pve/firewall/datacenter.fw
+  register: current_config_raw
+  when: inventory_hostname == proxmox_primary_node
+  ignore_errors: true 
+
+- name: Krok 3 Porównaj konfigurację w pamięci i zdecyduj, czy potrzebna jest aktualizacja
+  set_fact:
+    firewall_needs_update: "{{ (current_config_raw.content | default('', true) | b64decode).strip() != desired_config.strip() }}"
+  when: inventory_hostname == proxmox_primary_node
+
+- name: Krok 4 Zastosuj zmiany TYLKO jeśli konfiguracja się różni
+  block:
+    - name: Generuj plik konfiguracyjny w /tmp
+      template:
+        src: datacenter.fw.j2
+        dest: /tmp/datacenter.fw
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Kopiuj nową konfigurację na miejsce docelowe
+      command: cp /tmp/datacenter.fw /etc/pve/firewall/datacenter.fw
+      notify: reload pve firewall
+
+    - name: Posprzątaj plik z /tmp
+      file:
+        path: /tmp/datacenter.fw
+        state: absent
+
+  become: true
+  when:
+    - inventory_hostname == proxmox_primary_node
+    - firewall_needs_update is defined and firewall_needs_update

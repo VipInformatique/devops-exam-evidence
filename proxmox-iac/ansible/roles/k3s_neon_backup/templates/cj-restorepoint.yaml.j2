@@ -1,0 +1,86 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ restore_cj_name }}
+  namespace: {{ backup_ns }}
+spec:
+  schedule: "{{ restorepoint_schedule }}"
+  timeZone: "{{ marker_tz | default('Europe/Paris') }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: neon-api
+            image: {{ img_alpine }}          # alpine
+            env:
+            - name: NEON_API_KEY
+              valueFrom: { secretKeyRef: { name: {{ secret_name }}, key: NEON_API_KEY } }
+            - name: PROJECT_ID
+              valueFrom: { secretKeyRef: { name: {{ secret_name }}, key: NEON_PROJECT_ID } }
+            - name: BRANCH_ID
+              valueFrom: { secretKeyRef: { name: {{ secret_name }}, key: NEON_BRANCH_ID } }
+            - name: TZ                        # strefa czasu do local_datetime
+              value: "{{ marker_tz | default('Europe/Paris') }}"
+            volumeMounts:
+            - name: backups
+              mountPath: /backups
+            command: ["/bin/sh","-c"]
+            args:
+              - |
+                set -euo pipefail
+                # curl/jq + TZ data, żeby 'Europe/Paris' działało
+                apk add --no-cache curl jq tzdata >/dev/null
+                ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime || true
+
+                # Czas referencyjny dla API (UTC) + lokalny do CSV
+                ts=$(date -u +"%Y%m%d%H")              # yyyyMMddHH (UTC)
+                iso=$(date -u +"%Y-%m-%dT%H:00:00Z")   # ISO (UTC)
+                local_dt=$(date +"%Y-%m-%d %H:00")     # lokalnie wg $TZ
+
+                snap_url="https://console.neon.tech/api/v2/projects/${PROJECT_ID}/branches/${BRANCH_ID}/snapshot"
+                branch_url="https://console.neon.tech/api/v2/projects/${PROJECT_ID}/branches"
+
+                echo "[INFO] ${local_dt} trying snapshot hourly-${ts} ..."
+                code=$(curl -s -o /tmp/resp.json -w '%{http_code}' -X POST \
+                      -H "Authorization: Bearer $NEON_API_KEY" -H "Content-Type: application/json" \
+                      -d "{\"name\":\"hourly-${ts}\"}" "$snap_url" || echo 000)
+
+                if [ "$code" -ge 200 ] && [ "$code" -lt 300 ]; then
+                  name="snapshot-hourly-${ts}"
+                  echo "[OK] ${local_dt} snapshot created: $name"
+                else
+                  resp=$(curl -fsS -X POST \
+                           -H "Authorization: Bearer $NEON_API_KEY" -H "Content-Type: application/json" \
+                           -d "{\"parent_id\":\"${BRANCH_ID}\",\"parent_timestamp\":\"${iso}\"}" "$branch_url")
+                  name=$(echo "$resp" | jq -r '.branch.name')   # np. br-dark-...
+                  echo "[OK] ${local_dt} branch marker created: $name (UTC ${iso})"
+                fi
+
+                # CSV: tylko 2 kolumny (lokalna data-godzina, nazwa brancha)
+                csv=/backups/markers/markers.csv
+                mkdir -p /backups/markers
+                header="local_datetime,branch"
+
+                # wczytaj stare wiersze (bez nagłówka), usuń ewentualny wpis z tą samą godziną
+                tmp=/backups/markers/.markers.tmp
+                [ -f "$csv" ] && tail -n +2 "$csv" > "$tmp" || : 
+                awk -F, -v k="$local_dt" '$1!=k{print}' "$tmp" > "$tmp.keep" 2>/dev/null || true
+                echo "${local_dt},${name}" >> "$tmp.keep"
+
+                # rotacja: nagłówek + ostatnie N
+                {
+                  echo "$header"
+                  tail -n {{ keep_last_markers|int }} "$tmp.keep" 2>/dev/null || true
+                } > "$csv"
+                rm -f "$tmp" "$tmp.keep"
+          volumes:
+          - name: backups
+            persistentVolumeClaim:
+              claimName: {{ pvc_name }}

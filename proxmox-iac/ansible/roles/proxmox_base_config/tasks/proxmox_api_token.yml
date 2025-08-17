@@ -1,0 +1,63 @@
+# 9. Generate API token devistor@pve!tf (cluster-wide, run once)
+- block:
+    # 9.1 Check if the token already exists
+    - name: Check if token tf exists
+      command: pveum user token list devistor@pve --output-format json
+      register: token_list
+      changed_when: false
+
+    - name: Load token list as JSON
+      set_fact:
+        token_json: "{{ token_list.stdout | from_json }}"
+
+    - name: Check if token tf exists
+      set_fact:
+        tf_token_exists: "{{ 'tf' in (token_json | map(attribute='tokenid') | list) }}"
+
+    # 9.2 Create token only if not found
+    - name: Create token tf when absent
+      command: >-
+        pveum user token add devistor@pve tf
+        --privsep 1
+        --comment "Token for Terraform"
+        --output-format json
+      register: token_create
+      when: not tf_token_exists
+      changed_when: token_create.rc == 0
+
+    # 9.3 Assemble full string user!id:secret (only if freshly created)
+    - name: Assemble full token string
+      set_fact:
+        proxmox_api_token_full: "devistor@pve!tf:{{ (token_create.stdout | from_json).value }}"
+      when: token_create is changed
+      no_log: true
+
+    # 9.4 Save secret on the control node next to the playbook
+    - name: Store token on control node
+      copy:
+        content: "{{ proxmox_api_token_full }}"
+        dest: "{{ playbook_dir }}/terraform_api_token.txt"
+        mode: "0600"
+      when: token_create is changed
+      delegate_to: localhost
+      become: false
+
+    # 9.5 Export environment variable TF_VAR_proxmox_api_token
+    - name: Export TF_VAR_proxmox_api_token
+      copy:
+        dest: "{{ playbook_dir }}/.terraform_env"
+        content: |
+          TF_VAR_proxmox_api_token={{ proxmox_api_token_full }}
+        mode: "0600"
+      when: token_create is changed
+      delegate_to: localhost
+      become: false
+
+    # 9.6 Debug – show status only when token was actually created
+    - name: Show debug info when token created
+      debug:
+        msg: "token_create.changed={{ token_create is changed }}, token_value={{ proxmox_api_token_full }}"
+      when: token_create is changed
+
+  run_once: true
+  delegate_to: "{{ groups['proxmox_nodes'][0] }}"

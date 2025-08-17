@@ -1,0 +1,111 @@
+---
+# tasks file for proxmox_base_config
+###############################################################################
+# SSH access – local controller (WSL)
+###############################################################################
+
+# 1. Ensure ~/.ssh directory exists
+- name: Ensure ~/.ssh directory exists on controller
+  file:
+    path: "{{ lookup('env','HOME') }}/.ssh"
+    state: directory
+    mode: '0700'
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+# 2. Check if key already exists
+- name: Stat id_proxmox_ansible on controller
+  ansible.builtin.stat:
+    path: "{{ lookup('env','HOME') }}/.ssh/id_proxmox_ansible"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  register: key_stat
+
+# 3. Generate keypair only if missing
+- name: Generate id_proxmox_ansible keypair if missing
+  community.crypto.openssh_keypair:
+    path: "{{ lookup('env','HOME') }}/.ssh/id_proxmox_ansible"
+    type: ed25519
+    comment: "ansible@wsl"
+  when: not key_stat.stat.exists          # condition!
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+# 4. Copy public key to Proxmox hosts
+- name: Authorize Ansible key for devistor
+  ansible.builtin.authorized_key:
+    user: devistor
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_proxmox_ansible.pub') }}"
+  become: yes
+
+- name: 1. Deactivate Proxmox enterprise repository
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/pve-enterprise.list
+    regexp: '^deb'
+    line: '# deb https://enterprise.proxmox.com/debian/pve bookworm pve-enterprise'
+    state: present
+
+- name: 2. Activate Proxmox no-subscription repository
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/pve-no-subscription.list
+    line: "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription"
+    state: present
+    create: yes
+    mode: '0644'
+
+- name: 2.5. Add Proxmox repository GPG key (only if reachable)
+  ansible.builtin.get_url:
+    url: https://download.proxmox.com/debian/proxmox-release-bookworm.gpg
+    dest: /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg
+    mode: '0644'
+    validate_certs: yes
+  when: not skip_repo
+
+- name: 3. Ensure IP forwarding is enabled for K3s
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-kubernetes-ipv4-forwarding.conf
+    content: "net.ipv4.ip_forward=1"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: 4. Ensure ethtool is installed
+  ansible.builtin.apt:
+    name: ethtool
+    state: present
+
+- name: 4.5 Ensure jq is installed
+  ansible.builtin.apt:
+    name: jq
+    state: present
+
+- name: 5. Deploy script to disable hardware offloading
+  ansible.builtin.template:
+    src: disable-offloading.sh.j2
+    dest: /etc/network/if-up.d/disable-offloading
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: 6. Configure network interfaces from template
+  ansible.builtin.template:
+    src: interfaces.j2
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: '0644'
+    validate: ifup -n -i %s -a
+  notify: Restart networking
+  when: "'proxmox_nodes' in group_names"
+
+- name: 7. Ensure NFS client package is installed for shared storage
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+    update_cache: yes
+
+- import_tasks: proxmox_api_token.yml # 9. Generate API token devistor@pve!tf (idempotent)

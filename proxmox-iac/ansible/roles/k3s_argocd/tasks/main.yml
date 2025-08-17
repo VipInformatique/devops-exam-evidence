@@ -1,0 +1,250 @@
+---
+# --------------------------------------------------------------------
+# 1. Helm repository
+# --------------------------------------------------------------------
+- name: Add ArgoCD repo
+  kubernetes.core.helm_repository:
+    name: "{{ argocd_repo_name }}"
+    repo_url: "{{ argocd_repo_url }}"
+  delegate_to: localhost
+  run_once: true
+
+# --------------------------------------------------------------------
+# 2. Install / upgrade Argo CD
+# --------------------------------------------------------------------
+- name: Deploy Argo CD
+  kubernetes.core.helm:
+    name: argocd
+    values:
+      server:
+        service:
+          type: ClusterIP
+        extraArgs:
+          - --insecure
+    chart_ref: "{{ argocd_repo_name }}/argo-cd"
+    release_namespace: "{{ argocd_namespace }}"
+    create_namespace: true
+    chart_version: "{{ argocd_chart_version }}"
+    wait: true
+    wait_timeout: 5m
+    kubeconfig: "{{ k3s_kubeconfig }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Patch argocd-cm with Ingress health check override
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cm
+        namespace: "{{ argocd_namespace }}"
+      data:
+        resource.customizations.health.networking.k8s.io_Ingress: |
+          hs = {}
+          hs.status = "Healthy"
+          hs.message = "Ingress is managed externally or assumed healthy."
+          return hs
+  delegate_to: localhost
+  run_once: true
+
+- name: Patch deployment to trigger rollout
+  kubernetes.core.k8s:
+    api_version: apps/v1
+    kind: Deployment
+    name: argocd-application-controller
+    namespace: "{{ argocd_namespace }}"
+    definition:
+      spec:
+        template:
+          metadata:
+            annotations:
+              redeploy-ts: "{{ ansible_date_time.iso8601 }}"
+    state: patched
+  delegate_to: localhost
+  run_once: true
+
+# --------------------------------------------------------------------
+# 3. Wait until Application CRD is available in API
+# --------------------------------------------------------------------
+- name: Wait for Application CRD
+  kubernetes.core.k8s_info:
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: applications.argoproj.io
+    kubeconfig: "{{ k3s_kubeconfig }}"
+  register: crd_app
+  retries: 30
+  delay: 5
+  until: crd_app.resources | length > 0
+  delegate_to: localhost
+  run_once: true
+
+# --------------------------------------------------------------------
+# 4. Create dev / prod namespaces
+# --------------------------------------------------------------------
+- name: Ensure application namespaces exist
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ item }}"
+  loop: "{{ app_namespaces }}"
+  delegate_to: localhost
+  run_once: true
+
+# --------------------------------------------------------------------
+# 5. Create Applications
+# --------------------------------------------------------------------
+- name: Apply Argo CD Applications
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    src: "{{ role_path }}/files/argocd-applications.yaml"
+  delegate_to: localhost
+  run_once: true
+
+- name: Add Secret with SSH key to ArgoCD
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: github-repo-key
+        namespace: argocd
+        labels:
+          argocd.argoproj.io/secret-type: repository
+      type: Opaque
+      stringData:
+        url: git@github.com:VipInformatique/k3s-gitops-infra.git
+        sshPrivateKey: "{{ ssh_private_key }}"
+
+# -----------------------------------------------------------------
+# Task 1: Create secret for development environment (dev)
+# -----------------------------------------------------------------
+- name: Create DeviStor application secrets for DEV environment
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: devistor-secrets-dev
+        namespace: dev
+      type: Opaque
+      stringData:
+        SECRET_KEY: "{{ devistor_secret_key_dev }}"
+        DATABASE_URL: "{{ devistor_database_url_dev }}"
+        ADMIN_PASSWORD: "{{ devistor_admin_password_dev }}"
+        MAIL_PASSWORD: "{{ devistor_mail_password }}"
+
+# -----------------------------------------------------------------
+# Task 2: Create secret for production environment (prod)
+# -----------------------------------------------------------------
+- name: Create DeviStor application secrets for PROD environment
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: devistor-secrets-prod
+        namespace: prod
+      type: Opaque
+      stringData:
+        SECRET_KEY: "{{ devistor_secret_key_prod }}"
+        DATABASE_URL: "{{ devistor_database_url_prod }}"
+        ADMIN_PASSWORD: "{{ devistor_admin_password_prod }}"
+        MAIL_PASSWORD: "{{ devistor_mail_password }}"
+
+# -----------------------------------------------------------------
+# Docker Hub pull secret (dev + prod) — idempotent & safe
+# Requires variables: dockerhub_username, dockerhub_token (or dockerhub_password)
+# Optional: dockerhub_email, dockerhub_secret_namespaces (list), kubeconfig: k3s_kubeconfig
+# -----------------------------------------------------------------
+
+- name: Set target namespaces for Docker Hub pull secret
+  ansible.builtin.set_fact:
+    _dh_namespaces: "{{ dockerhub_secret_namespaces | default(['dev','prod']) }}"
+
+# Build JSON as STRING (not object) + hide in logs
+- name: Build Docker config JSON (as string)
+  no_log: true
+  ansible.builtin.set_fact:
+    _dh_user: "{{ dockerhub_username }}"
+    _dh_pass: "{{ dockerhub_token | default(dockerhub_password) }}"
+    _dh_auth_b64: "{{ (dockerhub_username ~ ':' ~ (dockerhub_token | default(dockerhub_password))) | b64encode }}"
+    _dockerconfig_json: >-
+      {{
+        {
+          "auths": {
+            "https://index.docker.io/v1/": {
+              "username": dockerhub_username,
+              "password": (dockerhub_token | default(dockerhub_password)),
+              "email": dockerhub_email | default(""),
+              "auth": ((dockerhub_username ~ ':' ~ (dockerhub_token | default(dockerhub_password))) | b64encode)
+            }
+          }
+        } | to_json
+      }}
+
+# If a secret with the wrong type exists — delete it (type is immutable)
+- name: Read existing dockerhub-creds
+  no_log: true
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    api_version: v1
+    kind: Secret
+    namespace: "{{ item }}"
+    name: dockerhub-creds
+  loop: "{{ _dh_namespaces }}"
+  register: _dh_existing
+
+- name: Delete dockerhub-creds with wrong type
+  no_log: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    api_version: v1
+    kind: Secret
+    namespace: "{{ item.resources[0].metadata.namespace }}"
+    name: "{{ item.resources[0].metadata.name }}"
+    state: absent
+  loop: "{{ _dh_existing.results }}"
+  when: item.resources | length > 0 and item.resources[0].type != 'kubernetes.io/dockerconfigjson'
+
+# Create/Update secret properly (stringData => STRING)
+- name: Create/Update Docker Hub pull secret (dev/prod)
+  no_log: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: dockerhub-creds
+        namespace: "{{ item }}"
+      type: kubernetes.io/dockerconfigjson
+      stringData:
+        .dockerconfigjson: "{{ _dockerconfig_json }}"
+  loop: "{{ _dh_namespaces }}"
+
+# (Optional) attach secret to default ServiceAccount in each namespace
+- name: Attach imagePullSecrets to default SA
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: default
+        namespace: "{{ item }}"
+      imagePullSecrets:
+        - name: dockerhub-creds
+  loop: "{{ _dh_namespaces }}"

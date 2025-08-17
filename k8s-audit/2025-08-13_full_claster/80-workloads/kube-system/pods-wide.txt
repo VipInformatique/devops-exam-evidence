@@ -1,0 +1,7 @@
+NAME                                      READY   STATUS    RESTARTS         AGE   IP             NODE            NOMINATED NODE   READINESS GATES
+coredns-ffdddc449-cm8qj                   1/1     Running   1 (18d ago)      19d   10.42.5.57     k8s-master-03   <none>           <none>
+kube-vip-46lgh                            1/1     Running   4 (18d ago)      21d   192.168.88.8   k8s-master-03   <none>           <none>
+kube-vip-kj9j9                            1/1     Running   3 (18d ago)      21d   192.168.88.6   k8s-master-01   <none>           <none>
+kube-vip-l4fxd                            1/1     Running   11 (6h16m ago)   21d   192.168.88.7   k8s-master-02   <none>           <none>
+local-path-provisioner-75bb9ff978-2szfv   1/1     Running   1 (18d ago)      20d   10.42.2.18     k8s-worker-03   <none>           <none>
+metrics-server-557ff575fb-tbt9p           1/1     Running   7 (40h ago)      20d   10.42.1.11     k8s-worker-01   <none>           <none>

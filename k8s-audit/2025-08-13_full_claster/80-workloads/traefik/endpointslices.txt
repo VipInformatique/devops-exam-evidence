@@ -1,0 +1,2 @@
+NAME            ADDRESSTYPE   PORTS       ENDPOINTS                          AGE
+traefik-jvqmt   IPv4          8000,8443   10.42.1.44,10.42.2.35,10.42.1.67   21d

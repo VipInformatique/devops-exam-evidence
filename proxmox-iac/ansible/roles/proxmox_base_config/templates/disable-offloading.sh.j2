@@ -1,0 +1,4 @@
+#!/bin/sh
+if [ "$IFACE" = "eno1" ]; then
+    /sbin/ethtool -K $IFACE tso off gso off gro off
+fi

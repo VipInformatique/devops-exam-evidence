@@ -1,0 +1,4 @@
+- name: reload pve firewall
+  ansible.builtin.command: pve-firewall restart
+  become: true
+  when: inventory_hostname == 'proxmox-dell'

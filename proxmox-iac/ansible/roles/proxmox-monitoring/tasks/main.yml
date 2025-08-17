@@ -1,0 +1,46 @@
+---
+# tasks file for proxmox-monitoring
+
+- name: 1. Download node_exporter archive
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v1.8.1/node_exporter-1.8.1.linux-amd64.tar.gz"
+    dest: "/tmp/node_exporter-1.8.1.linux-amd64.tar.gz"
+    mode: '0644'
+
+- name: 2. Unpack node_exporter archive
+  ansible.builtin.unarchive:
+    src: "/tmp/node_exporter-1.8.1.linux-amd64.tar.gz"
+    dest: "/tmp/"
+    remote_src: yes
+
+- name: 3. Move node_exporter binary to /usr/local/bin
+  ansible.builtin.copy:
+    src: "/tmp/node_exporter-1.8.1.linux-amd64/node_exporter"
+    dest: "/usr/local/bin/node_exporter"
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: 4. Create a system user for node_exporter
+  ansible.builtin.user:
+    name: node_exporter
+    system: yes
+    shell: "/bin/false"
+    create_home: no
+
+- name: 5. Create systemd service file for node_exporter
+  ansible.builtin.template:
+    src: "node_exporter.service.j2"
+    dest: "/etc/systemd/system/node_exporter.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart node_exporter
+
+- name: 6. Enable and start node_exporter service
+  ansible.builtin.systemd:
+    name: node_exporter
+    enabled: yes
+    state: started
+    daemon_reload: yes

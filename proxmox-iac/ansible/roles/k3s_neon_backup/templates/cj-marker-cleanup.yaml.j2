@@ -1,0 +1,91 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: neon-marker-cleanup
+  namespace: {{ backup_ns }}
+spec:
+  schedule: "15 * * * *"
+  timeZone: "{{ marker_tz | default('Europe/Paris') }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: cleanup
+              image: alpine:3.20
+              env:
+                # Neon API auth
+                - name: NEON_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: "{{ secret_name }}"
+                      key: NEON_API_KEY
+                # Neon project context
+                - name: PROJECT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: "{{ secret_name }}"
+                      key: NEON_PROJECT_ID
+                # Parent branch whose children we manage/clean
+                - name: PARENT_BRANCH_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: "{{ secret_name }}"
+                      key: NEON_BRANCH_ID
+                # Whitelist of branch NAMES that must never be deleted
+                # (space-separated; no spaces inside names)
+                - name: PROTECTED_NAMES
+                  value: "development developement developpement développement"
+                - name: PROTECTED_BRANCH_IDS
+                  value: "br-floral-grass-a2o9a3rb br-twoj-dev-id"
+              command: ["/bin/sh","-c"]
+              args:
+                - |
+                  set -euo pipefail
+                  apk add --no-cache curl jq >/dev/null
+
+                  ids_to_delete="$(
+                    curl --fail --silent --show-error \
+                         -H "Authorization: Bearer $NEON_API_KEY" \
+                         "https://console.neon.tech/api/v2/projects/${PROJECT_ID}/branches" \
+                    | jq -r \
+                        --arg P "$PARENT_BRANCH_ID" \
+                        --arg protected_names "${PROTECTED_NAMES:-development developement developpement développement}" \
+                        --arg protected_ids   "${PROTECTED_BRANCH_IDS:-}" \
+                        --argjson KEEP {{ keep_last_markers | default(3) | int }} '
+                          .branches
+                          | map(select(.parent_id == $P))
+                          | map(select((.endpoints // []) | length == 0))
+                          # --- protect by ID ---
+                          | ($protected_ids | split(" ") | map(select(length>0))) as $PID
+                          | map(select(.id as $id | ($PID | index($id)) | not))
+                          # --- protect by NAME ---
+                          | ($protected_names | split(" ")) as $PN
+                          | map(select((.name // "") as $nm | ($PN | index($nm)) | not))
+                          | sort_by(.created_at // .updated_at // .id)
+                          | (length - $KEEP) as $cut
+                          | if $cut > 0 then .[0:$cut] | .[].id else empty end
+                        '
+                  )"
+
+                  if [ -z "${ids_to_delete:-}" ]; then
+                    echo "[OK] nothing to delete"
+                    exit 0
+                  fi
+
+                  count=0
+                  for id in $ids_to_delete; do
+                    echo "[CLEANUP] deleting $id"
+                    curl --fail --silent --show-error -X DELETE \
+                      -H "Authorization: Bearer $NEON_API_KEY" \
+                      "https://console.neon.tech/api/v2/projects/${PROJECT_ID}/branches/${id}" >/dev/null || true
+                    count=$((count+1))
+                  done
+
+                  echo "[OK] cleanup done, removed: $count"

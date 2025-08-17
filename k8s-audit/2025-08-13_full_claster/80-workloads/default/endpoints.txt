@@ -1,0 +1,3 @@
+NAME                                            ENDPOINTS                                               AGE
+cluster.local-nfs-subdir-external-provisioner   <none>                                                  21d
+kubernetes                                      192.168.88.6:6443,192.168.88.7:6443,192.168.88.8:6443   21d

@@ -1,0 +1,45 @@
+NAMESPACE        NAME                                                                            CREATED AT
+argocd           role.rbac.authorization.k8s.io/argocd-application-controller                    2025-07-22T22:42:09Z
+argocd           role.rbac.authorization.k8s.io/argocd-applicationset-controller                 2025-07-22T22:42:09Z
+argocd           role.rbac.authorization.k8s.io/argocd-dex-server                                2025-07-22T22:42:09Z
+argocd           role.rbac.authorization.k8s.io/argocd-notifications-controller                  2025-07-22T22:42:09Z
+argocd           role.rbac.authorization.k8s.io/argocd-repo-server                               2025-07-22T22:42:09Z
+argocd           role.rbac.authorization.k8s.io/argocd-server                                    2025-07-22T22:42:09Z
+default          role.rbac.authorization.k8s.io/leader-locking-nfs-subdir-external-provisioner   2025-07-22T22:37:16Z
+kube-public      role.rbac.authorization.k8s.io/system:controller:bootstrap-signer               2025-07-22T21:21:52Z
+kube-system      role.rbac.authorization.k8s.io/extension-apiserver-authentication-reader        2025-07-22T21:21:52Z
+kube-system      role.rbac.authorization.k8s.io/kube-vip-role                                    2025-07-22T22:28:10Z
+kube-system      role.rbac.authorization.k8s.io/system::leader-locking-kube-controller-manager   2025-07-22T21:21:52Z
+kube-system      role.rbac.authorization.k8s.io/system::leader-locking-kube-scheduler            2025-07-22T21:21:52Z
+kube-system      role.rbac.authorization.k8s.io/system:controller:bootstrap-signer               2025-07-22T21:21:52Z
+kube-system      role.rbac.authorization.k8s.io/system:controller:cloud-provider                 2025-07-22T21:21:52Z
+kube-system      role.rbac.authorization.k8s.io/system:controller:token-cleaner                  2025-07-22T21:21:52Z
+metallb-system   role.rbac.authorization.k8s.io/metallb-controller                               2025-07-22T22:30:54Z
+metallb-system   role.rbac.authorization.k8s.io/metallb-pod-lister                               2025-07-22T22:30:54Z
+monitoring       role.rbac.authorization.k8s.io/kube-prometheus-stack-grafana                    2025-07-22T22:37:50Z
+sqldump          role.rbac.authorization.k8s.io/rbac-readonly                                    2025-08-09T20:21:11Z
+velero           role.rbac.authorization.k8s.io/velero-server                                    2025-07-26T19:15:39Z
+
+NAMESPACE        NAME                                                                                       ROLE                                                  AGE     USERS                                                   GROUPS   SERVICEACCOUNTS
+argocd           rolebinding.rbac.authorization.k8s.io/argocd-application-controller                        Role/argocd-application-controller                    21d                                                                      argocd/argocd-application-controller
+argocd           rolebinding.rbac.authorization.k8s.io/argocd-applicationset-controller                     Role/argocd-applicationset-controller                 21d                                                                      argocd/argocd-applicationset-controller
+argocd           rolebinding.rbac.authorization.k8s.io/argocd-dex-server                                    Role/argocd-dex-server                                21d                                                                      argocd/argocd-dex-server
+argocd           rolebinding.rbac.authorization.k8s.io/argocd-notifications-controller                      Role/argocd-notifications-controller                  21d                                                                      argocd/argocd-notifications-controller
+argocd           rolebinding.rbac.authorization.k8s.io/argocd-repo-server                                   Role/argocd-repo-server                               21d                                                                      argocd/argocd-repo-server
+argocd           rolebinding.rbac.authorization.k8s.io/argocd-server                                        Role/argocd-server                                    21d                                                                      argocd/argocd-server
+default          rolebinding.rbac.authorization.k8s.io/leader-locking-nfs-subdir-external-provisioner       Role/leader-locking-nfs-subdir-external-provisioner   21d                                                                      default/nfs-subdir-external-provisioner
+kube-public      rolebinding.rbac.authorization.k8s.io/system:controller:bootstrap-signer                   Role/system:controller:bootstrap-signer               21d                                                                      kube-system/bootstrap-signer
+kube-system      rolebinding.rbac.authorization.k8s.io/k3s-cloud-controller-manager-authentication-reader   Role/extension-apiserver-authentication-reader        21d     k3s-cloud-controller-manager                                     
+kube-system      rolebinding.rbac.authorization.k8s.io/kube-vip-rolebinding                                 Role/kube-vip-role                                    21d                                                                      kube-system/kube-vip
+kube-system      rolebinding.rbac.authorization.k8s.io/metrics-server-auth-reader                           Role/extension-apiserver-authentication-reader        21d                                                                      kube-system/metrics-server
+kube-system      rolebinding.rbac.authorization.k8s.io/system::extension-apiserver-authentication-reader    Role/extension-apiserver-authentication-reader        21d     system:kube-controller-manager, system:kube-scheduler            
+kube-system      rolebinding.rbac.authorization.k8s.io/system::leader-locking-kube-controller-manager       Role/system::leader-locking-kube-controller-manager   21d     system:kube-controller-manager                                   kube-system/kube-controller-manager
+kube-system      rolebinding.rbac.authorization.k8s.io/system::leader-locking-kube-scheduler                Role/system::leader-locking-kube-scheduler            21d     system:kube-scheduler                                            kube-system/kube-scheduler
+kube-system      rolebinding.rbac.authorization.k8s.io/system:controller:bootstrap-signer                   Role/system:controller:bootstrap-signer               21d                                                                      kube-system/bootstrap-signer
+kube-system      rolebinding.rbac.authorization.k8s.io/system:controller:cloud-provider                     Role/system:controller:cloud-provider                 21d                                                                      kube-system/cloud-provider
+kube-system      rolebinding.rbac.authorization.k8s.io/system:controller:token-cleaner                      Role/system:controller:token-cleaner                  21d                                                                      kube-system/token-cleaner
+metallb-system   rolebinding.rbac.authorization.k8s.io/metallb-controller                                   Role/metallb-controller                               21d                                                                      /metallb-controller
+metallb-system   rolebinding.rbac.authorization.k8s.io/metallb-pod-lister                                   Role/metallb-pod-lister                               21d                                                                      /metallb-speaker
+monitoring       rolebinding.rbac.authorization.k8s.io/kube-prometheus-stack-grafana                        Role/kube-prometheus-stack-grafana                    21d                                                                      monitoring/kube-prometheus-stack-grafana
+sqldump          rolebinding.rbac.authorization.k8s.io/rbac-readonly-bind                                   Role/rbac-readonly                                    3d19h                                                                    sqldump/default
+velero           rolebinding.rbac.authorization.k8s.io/velero-server                                        Role/velero-server                                    17d                                                                      velero/velero-server

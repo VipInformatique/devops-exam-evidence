@@ -1,0 +1,7 @@
+- name: Run master.yml if host belongs to k3s_masters
+  include_tasks: master.yml
+  when: "'k3s_masters' in group_names"
+
+- name: Run agent.yml if host belongs to k3s_workers
+  include_tasks: agent.yml
+  when: "'k3s_workers' in group_names"

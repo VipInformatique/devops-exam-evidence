@@ -1,0 +1,3 @@
+NAME                                READY   STATUS    RESTARTS        AGE    IP            NODE            NOMINATED NODE   READINESS GATES
+devistor-app-dev-7b8c46cd98-8lnpq   1/1     Running   2 (6h15m ago)   2d8h   10.42.3.111   k8s-worker-02   <none>           <none>
+devistor-app-dev-7b8c46cd98-h5nkk   1/1     Running   1 (40h ago)     2d8h   10.42.1.86    k8s-worker-01   <none>           <none>

@@ -1,0 +1,2 @@
+NAME                    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE   SELECTOR
+devistor-service-prod   ClusterIP   10.43.53.252   <none>        80/TCP    10d   app=devistor-prod

@@ -1,0 +1,482 @@
+---
+# Purpose: Apply NetworkPolicies (default-deny, allow-from-traefik, egress DNS+5432)
+# and verify enforcement via an active smoke test. Works on K3s without any extra enforcer.
+# Requires: k3s_kubeconfig -> absolute path to kubeconfig.
+
+###############################################################################
+# INIT — validate kubeconfig path
+###############################################################################
+- name: "INIT | Ensure kubeconfig exists"
+  ansible.builtin.stat:
+    path: "{{ k3s_kubeconfig }}"
+  register: _kc
+
+- name: "INIT | FAIL if kubeconfig missing"
+  ansible.builtin.fail:
+    msg: "kubeconfig not found at {{ k3s_kubeconfig }}. Set k3s_kubeconfig properly."
+  when: not _kc.stat.exists
+
+###############################################################################
+# PREFLIGHT — Active smoke test: confirm NetworkPolicies are enforced
+# Uses busybox:httpd on :80 + netshoot client, and kubectl exec (no k8s_exec).
+###############################################################################
+- name: "NP | Preflight smoke test (enforcement)"
+  block:
+
+    - name: "NP | Create temp namespace for smoke test"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata: { name: np-smoke }
+
+    - name: "NP | Launch server pod (np-b) httpd:80 (busybox)"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: np-b
+            namespace: np-smoke
+            labels: { app: np-b }
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: main
+                image: busybox:stable
+                command: ["sh","-lc","httpd -f -p 80"]
+
+    - name: "NP | Launch client pod (np-a) netshoot"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: np-a
+            namespace: np-smoke
+            labels: { app: np-a }
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: main
+                image: nicolaka/netshoot
+                command: ["sleep","3600"]
+
+    - name: "NP | Wait np-b Running"
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ k3s_kubeconfig }}"
+        api_version: v1
+        kind: Pod
+        namespace: np-smoke
+        name: np-b
+      register: npb
+      until: (npb.resources | length) > 0 and (npb.resources[0].status.phase | lower) == "running"
+      retries: 60
+      delay: 2
+
+    - name: "NP | Wait np-a Running"
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ k3s_kubeconfig }}"
+        api_version: v1
+        kind: Pod
+        namespace: np-smoke
+        name: np-a
+      register: npa
+      until: (npa.resources | length) > 0 and (npa.resources[0].status.phase | lower) == "running"
+      retries: 60
+      delay: 2
+
+    - name: "NP | Sanity: httpd process is running inside server pod"
+      ansible.builtin.command: >
+        kubectl --kubeconfig {{ k3s_kubeconfig }}
+        -n np-smoke exec np-b --
+        sh -lc 'pidof httpd >/dev/null 2>&1 || ps | grep -q "[h]ttpd"'
+      register: server_ok
+      changed_when: false
+      failed_when: server_ok.rc != 0
+
+    - name: "NP | Apply default-deny ingress for server"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: deny-ingress
+            namespace: np-smoke
+          spec:
+            podSelector: { matchLabels: { app: np-b } }
+            policyTypes: ["Ingress"]
+
+    - name: "NP | Get server Pod IP"
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ k3s_kubeconfig }}"
+        api_version: v1
+        kind: Pod
+        namespace: np-smoke
+        name: np-b
+      register: npb_info
+
+    - name: "NP | Client→Server connect (EXPECT BLOCK)"
+      ansible.builtin.command: >
+        kubectl --kubeconfig {{ k3s_kubeconfig }}
+        -n np-smoke exec np-a --
+        sh -lc 'curl -sS --max-time 3 -o /dev/null http://{{ npb_info.resources[0].status.podIP }}:80'
+      register: smoke_conn
+      changed_when: false
+      failed_when: smoke_conn.rc == 0  # success would mean NP not enforced
+
+  always:
+    - name: "NP | Cleanup smoke-test namespace"
+      kubernetes.core.k8s:
+        kubeconfig: "{{ k3s_kubeconfig }}"
+        state: absent
+        api_version: v1
+        kind: Namespace
+        name: np-smoke
+      ignore_errors: true
+
+###############################################################################
+# APPLY POLICIES (default-deny, allow-from-traefik, egress DNS + Postgres 5432)
+###############################################################################
+
+- name: "NP | Apply default-deny (Ingress + Egress)"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: default-deny
+        namespace: "{{ item.name }}"
+      spec:
+        podSelector: {}
+        policyTypes: ["Ingress","Egress"]
+  loop: "{{ namespaces }}"
+
+- name: "NP | Allow ingress from Traefik to app pods"
+  vars:
+    _match_labels: "{{ { (item.app_label_key): (item.app_label_value) } }}"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-from-traefik
+        namespace: "{{ item.name }}"
+      spec:
+        podSelector:
+          matchLabels: "{{ _match_labels }}"
+        ingress:
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: "{{ traefik_namespace }}"
+  loop: "{{ namespaces }}"
+
+- name: "NP | Allow egress to DNS (kube-dns) and Postgres 5432"
+  vars:
+    _match_labels: "{{ { (item.app_label_key): (item.app_label_value) } }}"
+    _dns_match_labels: "{{ { (kube_dns_label_key): (kube_dns_label_val) } }}"
+
+    # Zbuduj efektywną listę CIDR (wspiera neon_cidrs albo pojedynczy neon_cidr)
+    _neon_list: "{{ neon_cidrs | default([]) }}"
+    _neon_fallback: "{{ [neon_cidr] if (neon_cidr is defined and (neon_cidr|length)>0) else [] }}"
+    _neon_effective: "{{ _neon_list if (_neon_list|length)>0 else _neon_fallback }}"
+
+    # Zamień listę CIDR na listę obiektów ipBlock bez uciążliwego escapowania
+    _db_to_blocks_yaml: |-
+      {% for cidr in _neon_effective %}
+      - ipBlock:
+          cidr: "{{ cidr }}"
+      {% endfor %}
+    _db_to_blocks: "{{ _db_to_blocks_yaml | from_yaml | default([]) }}"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-egress-dns-and-db
+        namespace: "{{ item.name }}"
+      spec:
+        podSelector:
+          matchLabels: "{{ _match_labels }}"
+        policyTypes: ["Egress"]
+        egress:
+          # DNS allow
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: "{{ kube_dns_ns }}"
+                podSelector:
+                  matchLabels: "{{ _dns_match_labels }}"
+            ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+          # DB allow (wiele ipBlock)
+          - to: "{{ _db_to_blocks }}"
+            ports:
+              - protocol: TCP
+                port: "{{ neon_port }}"
+  loop: "{{ namespaces }}"
+  when: _neon_effective | length > 0
+
+
+
+###############################################################################
+# VERIFICATION — rc-based PASS/FAIL
+###############################################################################
+
+- name: "VERIFY | Discover existing namespaces"
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    api_version: v1
+    kind: Namespace
+  register: all_ns
+
+- name: "VERIFY | Set test namespaces (prod, traefik, +monitoring if present)"
+  ansible.builtin.set_fact:
+    test_namespaces: >-
+      {{ ['prod','traefik'] + (['monitoring'] if (all_ns.resources | selectattr('metadata.name','equalto','monitoring') | list | length) > 0 else []) }}
+
+- name: "VERIFY | Get prod app label key/value"
+  ansible.builtin.set_fact:
+    _prod_entry: "{{ (namespaces | selectattr('name','equalto','prod') | list | first) | default({}) }}"
+    prod_app_label_key: "{{ _prod_entry.app_label_key | default('app') }}"
+    prod_app_label_value: "{{ _prod_entry.app_label_value | default('devistor-prod') }}"
+
+- name: "VERIFY | Ensure np-test pod exists in prod (with app labels)"
+  vars:
+    _labels_prod: "{{ {'app': 'np-test'} | combine({ (prod_app_label_key): (prod_app_label_value) }) }}"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: np-test
+        namespace: prod
+        labels: "{{ _labels_prod }}"
+      spec:
+        restartPolicy: Never
+        containers:
+          - name: main
+            image: nicolaka/netshoot
+            command: ["sleep","3600"]
+
+- name: "VERIFY | Ensure np-test pods exist in other namespaces"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: np-test
+        namespace: "{{ item }}"
+        labels: { app: np-test }
+      spec:
+        restartPolicy: Never
+        containers:
+          - name: main
+            image: nicolaka/netshoot
+            command: ["sleep","3600"]
+  loop: "{{ test_namespaces | difference(['prod']) }}"
+
+# Prefer explicit Service by name if provided (optional)
+- name: "VERIFY | (opt) Get prod Service by explicit name"
+  when: app_service_name is defined and (app_service_name | length) > 0
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    api_version: v1
+    kind: Service
+    namespace: prod
+    name: "{{ app_service_name }}"
+  register: svc_prod_by_name
+
+# Otherwise list all Services in prod
+- name: "VERIFY | Get all Services in prod"
+  when: app_service_name is not defined or (app_service_name | length) == 0
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    api_version: v1
+    kind: Service
+    namespace: prod
+  register: svc_all_prod
+
+# Build candidates by matching selector key/value
+- name: "VERIFY | Init candidates list"
+  when: app_service_name is not defined or (app_service_name | length) == 0
+  ansible.builtin.set_fact:
+    svc_prod_matches: []
+
+- name: "VERIFY | Accumulate Services whose selector matches {{ prod_app_label_key }}={{ prod_app_label_value }}"
+  ansible.builtin.set_fact:
+    svc_prod_matches: "{{ svc_prod_matches + [item] }}"
+  loop: "{{ svc_all_prod.resources | default([]) }}"
+  loop_control:
+    label: "{{ item.metadata.name | default('unknown') }}"
+  when:
+    - app_service_name is not defined or (app_service_name | length) == 0
+    - item.spec is defined
+    - item.spec.selector is defined
+    - item.spec.selector[prod_app_label_key] is defined
+    - item.spec.selector[prod_app_label_key] == prod_app_label_value
+
+
+- name: "VERIFY | Choose Service (first match or explicit)"
+  ansible.builtin.set_fact:
+    svc_chosen: >-
+      {{
+        (svc_prod_by_name.resources | first)
+        if (app_service_name is defined and (app_service_name | length) > 0 and (svc_prod_by_name.resources | length) > 0)
+        else (svc_prod_matches | first)
+      }}
+
+- name: "VERIFY | FAIL if no matching Service found"
+  ansible.builtin.fail:
+    msg: >-
+      No Service in namespace 'prod' matches selector {{ prod_app_label_key }}={{ prod_app_label_value }}
+      (or the explicitly requested Service '{{ app_service_name | default('') }}' does not exist).
+      Provide 'app_service_name' in defaults or ensure a ClusterIP Service selects the app pods.
+  when: svc_chosen is not defined
+
+- name: "VERIFY | FAIL if chosen Service is headless"
+  ansible.builtin.fail:
+    msg: >-
+      Chosen Service '{{ svc_chosen.metadata.name }}' is headless (clusterIP=None).
+      Provide 'app_service_name' that points to a ClusterIP Service, or adjust tests.
+  when: (svc_chosen.spec.clusterIP is not defined) or (svc_chosen.spec.clusterIP in ['None', None])
+
+- name: "VERIFY | Discover kube-dns ClusterIP"
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    api_version: v1
+    kind: Service
+    namespace: "{{ kube_dns_ns }}"
+    name: kube-dns
+  register: dns_svc
+
+# Detect NP enforcer that supports egress (cilium/calico/antrea/kube-router/ovn)
+- name: "VERIFY | Detect NP enforcer (egress-capable)"
+  ansible.builtin.shell: |
+    set -e
+    kubectl --kubeconfig {{ k3s_kubeconfig }} -n kube-system get ds -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
+    | egrep -i 'cilium|calico|antrea|kube-router|ovn' || true
+  register: np_enforcer
+  changed_when: false
+
+- name: "VERIFY | Set egress support flag"
+  ansible.builtin.set_fact:
+    np_egress_supported: "{{ (np_enforcer.stdout | trim) != '' }}"
+
+- name: "VERIFY | Set facts for tests"
+  ansible.builtin.set_fact:
+    app_ip: "{{ svc_chosen.spec.clusterIP }}"
+    app_port: "{{ (svc_chosen.spec.ports | list | first).port }}"
+    dns_ip: "{{ dns_svc.resources[0].spec.clusterIP }}"
+
+# INGRESS: Traefik -> ALLOW (curl)
+- name: "VERIFY | Ingress from traefik (EXPECT ALLOW)"
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ k3s_kubeconfig }}
+    -n traefik exec np-test --
+    sh -lc 'curl -sS --max-time 3 -o /dev/null http://{{ app_ip }}:{{ app_port }}'
+  register: ingress_allow
+  changed_when: false
+  failed_when: ingress_allow.rc != 0
+
+# INGRESS: Monitoring -> BLOCK (curl)
+- name: "VERIFY | Ingress from monitoring (EXPECT BLOCK)"
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ k3s_kubeconfig }}
+    -n monitoring exec np-test --
+    sh -lc 'curl -sS --max-time 3 -o /dev/null http://{{ app_ip }}:{{ app_port }}'
+  register: ingress_block
+  when: "'monitoring' in test_namespaces"
+  changed_when: false
+  failed_when: ingress_block.rc == 0
+
+# EGRESS: DNS -> ALLOW
+- name: "VERIFY | Egress DNS from prod (EXPECT RESOLVE)"
+  when: np_egress_supported | bool
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ k3s_kubeconfig }}
+    -n prod exec np-test --
+    sh -lc 'dig +time=2 +tries=1 kubernetes.default.svc.cluster.local @{{ dns_ip }} +short'
+  register: egress_dns
+  changed_when: false
+  failed_when: egress_dns.rc != 0
+
+- name: "VERIFY | Egress DNS — SKIPPED (no enforcer)"
+  when: not (np_egress_supported | bool)
+  ansible.builtin.debug:
+    msg: "SKIPPED: no NP enforcer in cluster → Egress policies are not enforced."
+
+# EGRESS: HTTP 80 -> BLOCK
+- name: "VERIFY | Egress HTTP 80 from prod (EXPECT BLOCK)"
+  when: np_egress_supported | bool
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ k3s_kubeconfig }}
+    -n prod exec np-test --
+    sh -lc 'curl -sS --max-time 3 -o /dev/null http://example.com'
+  register: egress_http_block
+  changed_when: false
+  failed_when: egress_http_block.rc == 0  # rc 0 = ALLOW => FAIL (bo oczekujemy BLOCK)
+
+- name: "VERIFY | Egress HTTP 80 — SKIPPED (no enforcer)"
+  when: not (np_egress_supported | bool)
+  ansible.builtin.debug:
+    msg: "SKIPPED: no NP enforcer in cluster → egress cannot be blocked on flannel."
+
+- name: "VERIFY | Summary (PASS/FAIL)"
+  ansible.builtin.debug:
+    msg:
+      - >-
+        Ingress traefik -> app:
+        {{ 'PASS' if (ingress_allow is defined and ingress_allow.rc == 0) else 'FAIL' }}
+      - >-
+        Ingress monitoring -> app (blocked):
+        {{
+          'SKIPPED (no monitoring ns)' if ('monitoring' not in test_namespaces)
+          else ('PASS' if (ingress_block is defined and ingress_block.rc != 0) else 'FAIL')
+        }}
+      - >-
+        Egress DNS -> kube-dns:
+        {{
+          'SKIPPED (no enforcer)' if not (np_egress_supported | default(false) | bool)
+          else ('PASS' if (egress_dns is defined and egress_dns.rc == 0) else 'FAIL')
+        }}
+      - >-
+        Egress HTTP 80 (blocked):
+        {{
+          'SKIPPED (no enforcer)' if not (np_egress_supported | default(false) | bool)
+          else ('PASS' if (egress_http_block is defined and egress_http_block.rc != 0) else 'FAIL')
+        }}
+
+
+# Cleanup test pods (best-effort)
+- name: "VERIFY | Cleanup test pods"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: absent
+    kind: Pod
+    name: np-test
+    namespace: "{{ item }}"
+  loop: "{{ test_namespaces }}"
+  ignore_errors: true

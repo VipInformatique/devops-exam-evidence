@@ -1,0 +1,2 @@
+NAME                   ENDPOINTS                          AGE
+devistor-service-dev   10.42.1.86:8000,10.42.3.111:8000   21d

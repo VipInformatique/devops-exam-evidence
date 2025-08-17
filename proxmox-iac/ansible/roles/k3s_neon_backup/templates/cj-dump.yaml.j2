@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ dump_cj_name }}
+  namespace: {{ backup_ns }}
+spec:
+  schedule: "{{ dump_schedule }}"
+  timeZone: "{{ marker_tz | default('Europe/Paris') }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: dump
+            image: {{ img_pg }}  # postgres:17-alpine
+            env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ secret_name }}
+                  key: DATABASE_URL
+            volumeMounts:
+            - name: backups
+              mountPath: /backups
+            command: ["/bin/sh","-c"]
+            args:
+              - |
+                set -euo pipefail
+                export PGCONNECT_TIMEOUT=20
+                ts=$(date +%F_%H%M)
+                tmp="/backups/.neon_${ts}.dump.tmp"
+                out="/backups/neon_${ts}.dump"
+                echo "[INFO] Starting pg_dump at $(date)"
+                pg_dump "$DATABASE_URL" -Fc -Z9 --verbose -f "$tmp"
+                sync
+                mv "$tmp" "$out"
+                echo "[OK] Dump written to $out"
+          volumes:
+          - name: backups
+            persistentVolumeClaim:
+              claimName: {{ pvc_name }}

@@ -1,0 +1,19 @@
+NAMESPACE   LAST SEEN   TYPE     REASON             OBJECT                                   MESSAGE
+sqldump     28m         Normal   Scheduled          pod/neon-hourly-marker-29251620-8rdf9    Successfully assigned sqldump/neon-hourly-marker-29251620-8rdf9 to k8s-master-02
+sqldump     13m         Normal   Scheduled          pod/neon-marker-cleanup-29251635-pzf7t   Successfully assigned sqldump/neon-marker-cleanup-29251635-pzf7t to k8s-master-02
+sqldump     28m         Normal   Pulled             pod/neon-hourly-marker-29251620-8rdf9    Container image "alpine:3.20" already present on machine
+sqldump     28m         Normal   Created            pod/neon-hourly-marker-29251620-8rdf9    Created container neon-api
+sqldump     28m         Normal   Started            pod/neon-hourly-marker-29251620-8rdf9    Started container neon-api
+sqldump     28m         Normal   SuccessfulCreate   job/neon-hourly-marker-29251620          Created pod: neon-hourly-marker-29251620-8rdf9
+sqldump     28m         Normal   SuccessfulCreate   cronjob/neon-hourly-marker               Created job neon-hourly-marker-29251620
+sqldump     28m         Normal   SawCompletedJob    cronjob/neon-hourly-marker               Saw completed job: neon-hourly-marker-29251620, status: Complete
+sqldump     28m         Normal   SuccessfulDelete   cronjob/neon-hourly-marker               Deleted job neon-hourly-marker-29251560
+sqldump     28m         Normal   Completed          job/neon-hourly-marker-29251620          Job completed
+sqldump     13m         Normal   Pulled             pod/neon-marker-cleanup-29251635-pzf7t   Container image "alpine:3.20" already present on machine
+sqldump     13m         Normal   Created            pod/neon-marker-cleanup-29251635-pzf7t   Created container cleanup
+sqldump     13m         Normal   Started            pod/neon-marker-cleanup-29251635-pzf7t   Started container cleanup
+sqldump     13m         Normal   SuccessfulCreate   job/neon-marker-cleanup-29251635         Created pod: neon-marker-cleanup-29251635-pzf7t
+sqldump     13m         Normal   SuccessfulCreate   cronjob/neon-marker-cleanup              Created job neon-marker-cleanup-29251635
+sqldump     13m         Normal   Completed          job/neon-marker-cleanup-29251635         Job completed
+sqldump     13m         Normal   SuccessfulDelete   cronjob/neon-marker-cleanup              Deleted job neon-marker-cleanup-29251575
+sqldump     13m         Normal   SawCompletedJob    cronjob/neon-marker-cleanup              Saw completed job: neon-marker-cleanup-29251635, status: Complete

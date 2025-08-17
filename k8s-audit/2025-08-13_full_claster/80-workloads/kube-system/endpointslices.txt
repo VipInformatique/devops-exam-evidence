@@ -1,0 +1,9 @@
+NAME                                                  ADDRESSTYPE   PORTS              ENDPOINTS                                              AGE
+kube-dns-cqsgd                                        IPv4          9153,53,53         10.42.5.57                                             21d
+kube-prometheus-stack-coredns-wfdvc                   IPv4          9153               10.42.5.57                                             21d
+kube-prometheus-stack-kube-controller-manager-spvpf   IPv4          <unset>            <unset>                                                21d
+kube-prometheus-stack-kube-etcd-gfsbn                 IPv4          <unset>            <unset>                                                21d
+kube-prometheus-stack-kube-proxy-n5jxq                IPv4          <unset>            <unset>                                                21d
+kube-prometheus-stack-kube-scheduler-kbxxh            IPv4          <unset>            <unset>                                                21d
+kube-prometheus-stack-kubelet-qxfww                   IPv4          10255,10250,4194   192.168.88.10,192.168.88.11,192.168.88.6 + 3 more...   21d
+metrics-server-28rbq                                  IPv4          10250              10.42.1.11                                             21d

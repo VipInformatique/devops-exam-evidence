@@ -1,0 +1,2 @@
+NAME                              LABELS
+nfs-subdir-external-provisioner   map[app:nfs-subdir-external-provisioner release:nfs-subdir-external-provisioner]

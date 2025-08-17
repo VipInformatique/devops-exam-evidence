@@ -1,0 +1,66 @@
+---
+# 1) Alertmanager Secret (Telegram)
+- name: Ensure monitoring namespace exists
+  kubernetes.core.k8s:
+    state: present
+    api_version: v1
+    kind: Namespace
+    name: "{{ monitoring_ns }}"
+    kubeconfig: "{{ kubeconfig_path }}"
+  tags: [alerting, secret]
+
+- name: Create/Update Secret alertmanager-config (Telegram)
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "{{ kubeconfig_path }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ alertmanager_secret_name }}"
+        namespace: "{{ monitoring_ns }}"
+      type: Opaque
+      stringData:
+        alertmanager.yaml: "{{ lookup('template', 'alertmanager-config.yaml.j2') }}"
+  tags: [alerting, secret]
+
+# 2a) Ensure Alertmanager CR is Reconciled=True (operator accepted config)
+- name: Wait until Alertmanager CR is Reconciled=True
+  kubernetes.core.k8s_info:
+    api_version: monitoring.coreos.com/v1
+    kind: Alertmanager
+    name: "{{ kps_release }}-alertmanager"
+    namespace: "{{ monitoring_ns }}"
+    kubeconfig: "{{ kubeconfig_path }}"
+  register: am_cr
+  until: >
+    (am_cr.resources | length > 0) and
+    (
+      (am_cr.resources[0].status.conditions | selectattr('type','equalto','Reconciled') | list | length) > 0 and
+      ((am_cr.resources[0].status.conditions | selectattr('type','equalto','Reconciled') | first).status == 'True')
+    )
+  retries: 30
+  delay: 5
+  tags: [alerting, wire]
+
+# 2b) Additionally, wait until Alertmanager pods are Ready
+- name: Wait until Alertmanager pods are Ready
+  ansible.builtin.command: >
+    kubectl -n {{ monitoring_ns }}
+    wait --for=condition=ready pod
+    -l app.kubernetes.io/name=alertmanager,alertmanager={{ kps_release }}-alertmanager
+    --timeout=300s
+  changed_when: false
+  register: am_wait
+  failed_when: am_wait.rc != 0
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  tags: [alerting, wire]
+
+# 3) Prometheus Rules
+- name: Apply Devistor alert rules
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "{{ kubeconfig_path }}"
+    definition: "{{ lookup('template', 'prometheusrule-devistor.yaml.j2') | from_yaml }}"
+  tags: [alerting, rules]

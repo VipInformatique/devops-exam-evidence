@@ -1,0 +1,4 @@
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS               IMAGES                                    SELECTOR
+coredns                  1/1     1            1           21d   coredns                  rancher/mirrored-coredns-coredns:1.10.1   k8s-app=kube-dns
+local-path-provisioner   1/1     1            1           21d   local-path-provisioner   rancher/local-path-provisioner:v0.0.26    app=local-path-provisioner
+metrics-server           1/1     1            1           21d   metrics-server           rancher/mirrored-metrics-server:v0.7.0    k8s-app=metrics-server

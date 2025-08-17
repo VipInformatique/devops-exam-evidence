@@ -1,0 +1,34 @@
+# Kubeconfig used by kubernetes.core.k8s
+k3s_kubeconfig: "/etc/rancher/k3s/k3s.yaml"
+
+# Namespaces that hold personal data (labels for RGPD evidence)
+rgpd_namespaces:
+  - sqldump
+  - velero
+
+# Secrets that MUST be rotated every N days (annotate with rotated_at / rotate_by)
+rgpd_secrets_rotate_180:
+  - { namespace: "sqldump", name: "neon-secrets",          reason: "Neon API key / DATABASE_URL" }
+  - { namespace: "velero",  name: "cloud-credentials",     reason: "Cloudflare R2 access/secret key" }
+
+# Secrets we only observe now (no rotation schedule yet; still annotated with 'rgpd.observed=true')
+rgpd_secrets_observe:
+  - { namespace: "cloudflare", name: "cloudflared-credentials", reason: "Cloudflare Tunnel credentials" }
+  - { namespace: "prod",       name: "dockerhub-creds",          reason: "DockerHub token" }
+  - { namespace: "argocd",     name: "github-repo-key",          reason: "Git repo deploy key" }
+  - { namespace: "dev",        name: "devistor-secrets-dev",     reason: "App secrets (dev)" }
+  - { namespace: "prod",       name: "devistor-secrets-prod",    reason: "App secrets (prod)" }
+
+# Rotation policy (days)
+rgpd_rotation_days: 180
+
+# Where watcher runs and where the NFS PVC lives
+rgpd_namespace: "sqldump"
+rgpd_pvc_name: "synology-backups-pvc"
+
+# Daily schedule and timezone
+rgpd_watch_schedule: "0 8 * * *"
+rgpd_watch_tz: "Europe/Paris"
+
+# Image to run (apk + curl + jq available)
+rgpd_watch_image: "alpine:3.20"

@@ -1,0 +1,2 @@
+NAME         ADDRESSTYPE   PORTS   ENDPOINTS                                AGE
+kubernetes   IPv4          6443    192.168.88.6,192.168.88.7,192.168.88.8   21d

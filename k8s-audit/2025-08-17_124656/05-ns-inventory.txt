@@ -1,0 +1,19 @@
+NAME                         DATA   AGE
+configmap/kube-root-ca.crt   1      7s
+configmap/restore-canary     1      5s
+
+NAME                           TYPE                             DATA   AGE
+secret/devistor-secrets-prod   Opaque                           4      5s
+secret/dockerhub-creds         kubernetes.io/dockerconfigjson   1      5s
+
+NAME                                                         POD-SELECTOR        AGE
+networkpolicy.networking.k8s.io/allow-dns-egress             <none>              6s
+networkpolicy.networking.k8s.io/allow-egress-db-web          app=devistor-prod   6s
+networkpolicy.networking.k8s.io/allow-egress-dns-and-db      app=devistor-prod   6s
+networkpolicy.networking.k8s.io/allow-from-traefik           app=devistor-prod   6s
+networkpolicy.networking.k8s.io/allow-ingress-from-traefik   app=devistor-prod   6s
+networkpolicy.networking.k8s.io/default-deny                 <none>              5s
+networkpolicy.networking.k8s.io/default-deny-all-ingress     <none>              5s
+
+NAME                               STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE   VOLUMEMODE
+persistentvolumeclaim/canary-pvc   Pending   pvc-926439ec-bf49-4777-88f4-ba8b1cc70859   0                         local-path     <unset>                 6s    Filesystem
