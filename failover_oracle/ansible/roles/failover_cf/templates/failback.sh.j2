@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Daily 04:30 failback: probe PRIMARY via canary. If healthy -> switch apex to PRIMARY.
+set -euo pipefail
+source "{{ _failover_dir }}/.env"
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+log(){ echo "$(date '+%F %T') $*"; }
+
+ZONE_ID="$(cat {{ _failover_dir }}/zone.id)"
+REC_ID="$(cat {{ _failover_dir }}/record.id)"
+LOCK="{{ _failover_dir }}/standby.lock"
+
+# aktualny cel
+current="$(curl -s -H "Authorization: Bearer ${CF_API_TOKEN}" \
+  "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${REC_ID}" \
+  | jq -r '.result.content')"
+
+# Jeżeli już jest PRIMARY → nic nie rób
+if [[ "${current}" == "${PRIMARY_TARGET}" ]]; then
+  log "Apex already on PRIMARY; nothing to do."
+  [[ -f "${LOCK}" ]] && rm -f "${LOCK}"
+  exit 0
+fi
+
+probe_primary() {
+  if [[ -n "${PRIMARY_CANARY_URL:-}" ]]; then
+    curl -fsSL --max-time "${HEALTH_TIMEOUT}" "${PRIMARY_CANARY_URL}" >/dev/null
+  elif [[ -n "${PRIMARY_TARGET:-}" ]]; then
+    curl -fsSL --max-time "${HEALTH_TIMEOUT}" -H "Host: ${APEX_HOST}" "https://${PRIMARY_TARGET}/health" >/dev/null
+  else
+    return 1
+  fi
+}
+
+ok=0
+for i in $(seq 1 "${HEALTH_RETRIES}"); do
+  if probe_primary; then ok=1; break; fi
+  sleep "${HEALTH_INTERVAL}"
+done
+
+if [[ "${ok}" -ne 1 ]]; then
+  log "Failback skipped: PRIMARY still unhealthy."
+  exit 0
+fi
+
+log "Failback: switching apex ${APEX_HOST} -> ${PRIMARY_TARGET}"
+curl -sX PUT "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${REC_ID}" \
+  -H "Authorization: Bearer ${CF_API_TOKEN}" \
+  -H "Content-Type: application/json" \
+  --data "{\"type\":\"CNAME\",\"name\":\"${APEX_HOST}\",\"content\":\"${PRIMARY_TARGET}\",\"ttl\":60,\"proxied\":true}" \
+  | jq '.success'
+
+[[ -f "${LOCK}" ]] && rm -f "${LOCK}"

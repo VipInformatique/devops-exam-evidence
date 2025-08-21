@@ -1,0 +1,181 @@
+# Workflow name shown in GitHub Actions UI
+name: Build, Test & Deploy Application
+
+# Workflow triggers:
+# - Manual dispatch via GitHub UI
+# - Pushes to "main" or "dev" branches
+# - Pull requests targeting the "dev" branch
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ dev ]
+
+jobs:
+  # Job 1: Code linting, security scanning and test Docker build
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # Clone the current repository
+      - name: Checkout application code
+        uses: actions/checkout@v3
+
+      # Install Python 3.10
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # Cache pip dependencies to speed up workflow runs
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      # Install Python dependencies and code analysis tools
+      - name: Install dependencies and tools
+        run: |
+          pip install -r requirements.txt
+          pip install bandit flake8
+
+      # Perform static security scan with Bandit
+      - name: Security scan (Bandit)
+        run: bandit -r app -ll
+
+      # Perform code style check with flake8
+      - name: Style scan (flake8)
+        run: flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      # Test Docker build to verify Dockerfile correctness
+      - name: Docker build test
+        run: docker build -t devistor-test .
+
+  # Job 2: Build and deploy application image to the DEV environment
+  build-and-deploy-dev:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      # Clone the application code
+      - name: Checkout application code
+        uses: actions/checkout@v3
+
+      # Authenticate with Docker Hub using secrets
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Extract the short commit hash
+      - name: Get commit hash
+        id: commit
+        run: echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      # Build and push the DEV image to Docker Hub
+      - name: Build and push DEV image
+        run: |
+          docker build -t vipinformatique/devistor:dev-${{ steps.commit.outputs.hash }} .
+          docker push vipinformatique/devistor:dev-${{ steps.commit.outputs.hash }}
+
+      # Scan the image for vulnerabilities using Trivy (non-blocking)
+      - name: Scan DEV image for vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'vipinformatique/devistor:dev-${{ steps.commit.outputs.hash }}'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+      # Clone the GitOps infrastructure repository
+      - name: Checkout IaC repo
+        uses: actions/checkout@v3
+        with:
+          repository: VipInformatique/k3s-gitops-infra
+          path: k3s-gitops-infra
+          token: ${{ secrets.PERSONAL_TOKEN }}
+
+      # Update the image tag in the DEV overlay
+      - name: Update image tag for DEV in GitOps repo
+        run: |
+          cd k3s-gitops-infra/apps/devistor-app/overlays/dev
+          sed -i "s|image: vipinformatique/devistor:.*|image: vipinformatique/devistor:dev-${{ steps.commit.outputs.hash }}|" image-tag.yaml
+
+      # Commit and push the updated manifest to the GitOps repo
+      - name: Commit and push DEV manifest changes
+        run: |
+          cd k3s-gitops-infra
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update DEV image tag to dev-${{ steps.commit.outputs.hash }}"
+          git push
+
+  # Job 3: Build and deploy application image to the PROD environment
+  build-and-deploy-prod:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      # Clone the application code
+      - name: Checkout application code
+        uses: actions/checkout@v3
+
+      # Authenticate with Docker Hub using secrets
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Extract the short commit hash
+      - name: Get commit hash
+        id: commit
+        run: echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      # Build and push two Docker tags: a versioned PROD tag and "latest"
+      - name: Build and push PROD images (unique and :latest)
+        run: |
+          docker build \
+            -t vipinformatique/devistor:prod-${{ steps.commit.outputs.hash }} \
+            -t vipinformatique/devistor:latest \
+            .
+          docker push vipinformatique/devistor:prod-${{ steps.commit.outputs.hash }}
+          docker push vipinformatique/devistor:latest
+
+      # Scan the image for vulnerabilities using Trivy (blocking on CRITICAL or HIGH)
+      - name: Scan PROD image for vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'vipinformatique/devistor:prod-${{ steps.commit.outputs.hash }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+      # Clone the GitOps infrastructure repository
+      - name: Checkout IaC repo
+        uses: actions/checkout@v3
+        with:
+          repository: VipInformatique/k3s-gitops-infra
+          path: k3s-gitops-infra
+          token: ${{ secrets.PERSONAL_TOKEN }}
+
+      # Update the image tag in the PROD overlay
+      - name: Update image tag for PROD in GitOps repo
+        run: |
+          cd k3s-gitops-infra/apps/devistor-app/overlays/prod
+          sed -i "s|image: vipinformatique/devistor:.*|image: vipinformatique/devistor:prod-${{ steps.commit.outputs.hash }}|" image-tag.yaml
+
+      # Commit and push the updated manifest to the GitOps repo
+      - name: Commit and push PROD manifest changes
+        run: |
+          cd k3s-gitops-infra
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update PROD image tag to prod-${{ steps.commit.outputs.hash }}"
+          git push

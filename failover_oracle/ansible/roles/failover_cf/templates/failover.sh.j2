@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Failover check (one-way). If PRIMARY is unhealthy while apex is on PRIMARY -> switch apex to STANDBY.
+set -euo pipefail
+source "{{ _failover_dir }}/.env"
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+log(){ echo "$(date '+%F %T') $*"; }
+
+ZONE_ID="$(cat {{ _failover_dir }}/zone.id)"
+REC_ID="$(cat {{ _failover_dir }}/record.id)"
+LOCK="{{ _failover_dir }}/standby.lock"
+
+# Jaki jest aktualny cel CNAME?
+current="$(curl -s -H "Authorization: Bearer ${CF_API_TOKEN}" \
+  "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${REC_ID}" \
+  | jq -r '.result.content')"
+
+# Jeśli już jesteśmy na STANDBY -> nic nie rób (lepkość)
+if [[ "${current}" == "${STANDBY_TARGET}" ]]; then
+  [[ -f "${LOCK}" ]] || touch "${LOCK}"
+  log "Apex already on STANDBY (${STANDBY_TARGET}). Sticky mode – no action."
+  exit 0
+fi
+
+# Funkcja testująca ZDROWIE PRIMARY
+probe_primary() {
+  if [[ -n "${PRIMARY_CANARY_URL:-}" ]]; then
+    curl -fsSL --max-time "${HEALTH_TIMEOUT}" "${PRIMARY_CANARY_URL}" >/dev/null
+  elif [[ -n "${PRIMARY_TARGET:-}" ]]; then
+    # fallback (działa, jeśli PRIMARY jest w Zero Trust z hostem devistor.fr)
+    curl -fsSL --max-time "${HEALTH_TIMEOUT}" -H "Host: ${APEX_HOST}" "https://${PRIMARY_TARGET}/health" >/dev/null
+  else
+    return 1
+  fi
+}
+
+# Sprawdzaj PRIMARY kilka razy
+ok=0
+for i in $(seq 1 "${HEALTH_RETRIES}"); do
+  if probe_primary; then ok=1; break; fi
+  sleep "${HEALTH_INTERVAL}"
+done
+
+# Jeżeli PRIMARY zdrowy → nic nie rób
+if [[ "${ok}" -eq 1 ]]; then
+  log "PRIMARY healthy; keep apex on ${current}."
+  exit 0
+fi
+
+# PRIMARY padł → przełącz na STANDBY
+log "PRIMARY unhealthy; switching apex ${APEX_HOST} -> ${STANDBY_TARGET}"
+curl -sX PUT "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${REC_ID}" \
+  -H "Authorization: Bearer ${CF_API_TOKEN}" \
+  -H "Content-Type: application/json" \
+  --data "{\"type\":\"CNAME\",\"name\":\"${APEX_HOST}\",\"content\":\"${STANDBY_TARGET}\",\"ttl\":60,\"proxied\":true}" \
+  | jq '.success'
+
+# Zaznacz tryb awaryjny
+touch "${LOCK}"
+
+# (opcjonalnie) odśwież kontener na standby — zostawiłem to wyłączone domyślnie.
+if [[ -n "${DOCKER_IMAGE:-}" && -n "${CONTAINER_NAME:-}" ]]; then
+  log "Refreshing standby container ${CONTAINER_NAME}"
+  docker pull "${DOCKER_IMAGE}:${DOCKER_TAG}" || true
+  docker rm -f "${CONTAINER_NAME}" || true
+  if [[ -n "${APP_ENV_JSON:-}" ]]; then
+    docker run -d --name "${CONTAINER_NAME}" -p 80:8000 --restart=always \
+      $(jq -r 'to_entries|.[]|"-e \(.key)=\(.value)"' <<< "${APP_ENV_JSON}") \
+      "${DOCKER_IMAGE}:${DOCKER_TAG}"
+  else
+    docker run -d --name "${CONTAINER_NAME}" -p 80:8000 --restart=always \
+      "${DOCKER_IMAGE}:${DOCKER_TAG}"
+  fi
+fi

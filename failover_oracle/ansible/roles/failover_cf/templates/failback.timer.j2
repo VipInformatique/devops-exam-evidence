@@ -1,0 +1,11 @@
+[Unit]
+Description=Run daily failback at 04:30 (Europe/Paris)
+
+[Timer]
+OnCalendar=*-*-* 04:30:00
+Timezone=Europe/Paris
+Persistent=true
+Unit=failback.service
+
+[Install]
+WantedBy=timers.target

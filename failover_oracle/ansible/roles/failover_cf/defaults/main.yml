@@ -1,0 +1,22 @@
+cf_zone_name: "devistor.fr"
+cf_zone_id: ""
+cf_account_id: ""
+cf_record_name: "@"
+
+cf_primary_tunnel_id: ""
+cf_standby_tunnel_id: ""
+standby_tunnel_name: "devistor-standby-oci"
+
+health_url: "https://devistor.fr/health"
+health_timeout: 3
+health_interval: 30
+health_retries: 4
+time_zone: "Europe/Paris"
+
+docker_image: "vipinformatique/devistor"
+docker_tag: "latest"
+container_name: "devistor-app"
+app_environment: {}
+
+failover_dir: "/opt/failover"
+cloudflared_binary: "/usr/bin/cloudflared"

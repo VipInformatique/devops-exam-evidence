@@ -1,0 +1,9 @@
+[Unit]
+Description=Cloudflare DNS failover (probe + optional standby refresh)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment="TZ={{ _time_zone }}"
+ExecStart={{ _failover_dir }}/failover.sh

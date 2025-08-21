@@ -1,0 +1,10 @@
+- name: Daemon reload
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  listen: Daemon reload
+
+- name: Restart failover timer
+  ansible.builtin.systemd:
+    name: failover.timer
+    state: restarted
+  listen: Restart failover timer

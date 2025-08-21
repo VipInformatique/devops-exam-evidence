@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "{{ _failover_dir }}/.env"
+
+# FQDN for apex
+if [[ "${RECORD_NAME}" == "@" || -z "${RECORD_NAME}" ]]; then
+  FQDN="${ZONE_NAME}"
+else
+  FQDN="${RECORD_NAME}.${ZONE_NAME}"
+fi
+
+# Zone ID: use provided or resolve
+if [[ -z "${ZONE_ID}" ]]; then
+  ZONE_ID="$(curl -s -H "Authorization: Bearer ${CF_API_TOKEN}" \
+    "https://api.cloudflare.com/client/v4/zones?name=${ZONE_NAME}" \
+    | jq -r '.result[0].id')"
+fi
+
+if [[ -z "${ZONE_ID}" || "${ZONE_ID}" == "null" ]]; then
+  echo "ERROR: Cannot resolve Zone ID for ${ZONE_NAME}" >&2
+  exit 1
+fi
+
+echo "${ZONE_ID}" > "{{ _failover_dir }}/zone.id"
+
+# Find apex CNAME
+REC_ID="$(curl -s -H "Authorization: Bearer ${CF_API_TOKEN}" \
+  "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records?name=${FQDN}&type=CNAME" \
+  | jq -r '.result[0].id')"
+
+# Create if missing (point to PRIMARY)
+if [[ -z "${REC_ID}" || "${REC_ID}" == "null" ]]; then
+  REC_ID="$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records" \
+    -H "Authorization: Bearer ${CF_API_TOKEN}" \
+    -H "Content-Type: application/json" \
+    --data "{\"type\":\"CNAME\",\"name\":\"${FQDN}\",\"content\":\"${PRIMARY_TARGET}\",\"ttl\":60,\"proxied\":true}" \
+    | jq -r '.result.id')"
+fi
+
+if [[ -z "${REC_ID}" || "${REC_ID}" == "null" ]]; then
+  echo "ERROR: Cannot create/find CNAME for ${FQDN}" >&2
+  exit 1
+fi
+
+echo "${REC_ID}" > "{{ _failover_dir }}/record.id"

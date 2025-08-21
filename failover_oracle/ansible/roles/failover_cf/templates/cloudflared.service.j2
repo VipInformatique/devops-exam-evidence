@@ -1,0 +1,13 @@
+[Unit]
+Description=Cloudflare Tunnel (standby) on OCI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile={{ _failover_dir }}/.env
+ExecStart={{ _cloudflared_binary }} --no-autoupdate tunnel run --token ${STANDBY_TUNNEL_TOKEN}
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

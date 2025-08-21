@@ -76,5 +76,7 @@
         pull: true
         restart_policy: always
         ports:
-          - "80:8000" # Mapuje port 80 hosta na port 5000 kontenera (standard dla Flask)
+          - "80:8000" 
         env: "{{ app_environment }}"
+
+      

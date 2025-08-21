@@ -1,0 +1,265 @@
+---
+# 0) Normalize variable aliases (support your original names)
+- name: Normalize input variables
+  set_fact:
+    _zone_name: "{{ cf_zone_name | default(zone_name) }}"
+    _zone_id: "{{ cf_zone_id | default(cloudflare_zone_id) | default('') }}"
+    _account_id: "{{ cf_account_id | default(cloudflare_account_id) | default('') }}"
+    _dns_api_token: "{{ cf_api_token | default(cloudflare_api_token) }}"
+    _tunnel_edit_token: "{{ cf_api_token_tunnel_edit | default('') }}"
+    _primary_uuid: "{{ cf_primary_tunnel_id | default(primary_tunnel_id) }}"
+    _standby_uuid: "{{ cf_standby_tunnel_id | default(standby_tunnel_id) | default('') }}"
+    _standby_tunnel_name: "{{ standby_tunnel_name }}"
+    _record_name: "{{ cf_record_name | default('@') }}"
+    _health_url: "{{ health_url }}"
+    _health_timeout: "{{ health_timeout | int }}"
+    _health_interval: "{{ health_interval | int }}"
+    _health_retries: "{{ health_retries | int }}"
+    _time_zone: "{{ time_zone }}"
+    _docker_image: "{{ docker_image }}"
+    _docker_tag: "{{ docker_tag }}"
+    _container_name: "{{ container_name }}"
+    _app_env: "{{ app_environment }}"
+    _failover_dir: "{{ failover_dir }}"
+    _cloudflared_binary: "{{ cloudflared_binary }}"
+    _standby_token: "{{ cf_standby_tunnel_token | default(tunnel_token) | default('') }}"
+
+# 1) Ensure base tools
+- name: Ensure curl and jq are present
+  apt:
+    name: [curl, jq]
+    state: present
+    update_cache: yes
+
+# 2) Working dir
+- name: Create failover working directory
+  file:
+    path: "{{ _failover_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+# 3) Resolve Zone ID if not provided
+- name: Resolve Zone ID by name (if not set)
+  when: _zone_id | length == 0
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones?name={{ _zone_name }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ _dns_api_token }}"
+  register: _zone_lookup
+  failed_when: _zone_lookup.json.result | length == 0
+
+- name: Set zone id fact
+  when: _zone_id | length == 0
+  set_fact:
+    _zone_id: "{{ _zone_lookup.json.result[0].id }}"
+
+# 3a) Render .env (bootstrap — needed by get-ids.sh)
+- name: Render .env (bootstrap - before get-ids)
+  template:
+    src: ".env.j2"
+    dest: "{{ _failover_dir }}/.env"
+    owner: root
+    group: root
+    mode: "0600"
+
+# 4) Ensure apex record exists (create if missing) and cache IDs
+- name: Deploy get-ids helper
+  template:
+    src: "get-ids.sh.j2"
+    dest: "{{ _failover_dir }}/get-ids.sh"
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Run get-ids (idempotent)
+  command: "{{ _failover_dir }}/get-ids.sh"
+  changed_when: false
+
+# 5) Optional: create/ensure STANDBY tunnel and its remote config (devistor.fr -> http://localhost:80)
+#    Also FETCH the STANDBY RUN TOKEN via API and set _standby_token fact.
+- block:
+    - name: Find standby tunnel by name
+      uri:
+        url: "https://api.cloudflare.com/client/v4/accounts/{{ _account_id }}/cfd_tunnel?name={{ _standby_tunnel_name }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _tunnel_edit_token }}"
+      register: _t_list
+
+    - name: Create standby tunnel if missing
+      when: _t_list.json.result | length == 0
+      uri:
+        url: "https://api.cloudflare.com/client/v4/accounts/{{ _account_id }}/cfd_tunnel"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ _tunnel_edit_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ _standby_tunnel_name }}"
+          config_src: "cloudflare"
+      register: _t_create
+      no_log: true
+
+    - name: Set _standby_uuid fact (from list or create)
+      set_fact:
+        _standby_uuid: >-
+          {{
+            (_t_list.json.result[0].id)
+            if (_t_list.json.result | length > 0)
+            else (_t_create.json.result.id)
+          }}
+
+    - name: Configure remote ingress (devistor.fr -> http://localhost:80)
+      uri:
+        url: "https://api.cloudflare.com/client/v4/accounts/{{ _account_id }}/cfd_tunnel/{{ _standby_uuid }}/configurations"
+        method: PUT
+        headers:
+          Authorization: "Bearer {{ _tunnel_edit_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          config:
+            ingress:
+              - hostname: "{{ _zone_name }}"
+                service: "http://localhost:80"
+                originRequest: {}
+              - service: "http_status:404"
+
+    - name: Fetch standby TUNNEL RUN TOKEN
+      uri:
+        url: "https://api.cloudflare.com/client/v4/accounts/{{ _account_id }}/cfd_tunnel/{{ _standby_uuid }}/token"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ _tunnel_edit_token }}"
+      register: _t_token
+      no_log: true
+
+    - name: Set standby token fact (from API)
+      set_fact:
+        _standby_token: "{{ _t_token.json.result }}"
+  when: _tunnel_edit_token | length > 0 and _account_id | length > 0
+
+# 6) Render .env AFTER we know the token/UUIDs
+- name: Render .env (tokens and params)
+  template:
+    src: ".env.j2"
+    dest: "{{ _failover_dir }}/.env"
+    owner: root
+    group: root
+    mode: "0600"
+
+# 7) Guard: ensure we do have a RUN token for standby before starting cloudflared
+- name: Ensure standby tunnel token is available
+  assert:
+    that:
+      - _standby_token | length > 0
+    fail_msg: >
+      Standby tunnel RUN token is missing.
+      Provide it in Vault (cf_standby_tunnel_token) OR allow the role to fetch it via cf_api_token_tunnel_edit + cf_account_id.
+
+# 8) Cloudflared (standby) as systemd with RUN TOKEN
+- name: Add Cloudflare APT keyring
+  shell: |
+    set -e
+    install -d -m 0755 /usr/share/keyrings
+    curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+  args:
+    creates: /usr/share/keyrings/cloudflare-main.gpg
+
+- name: Add Cloudflare APT repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared {{ ansible_distribution_release }} main"
+    state: present
+    filename: "cloudflared"
+
+- name: Install cloudflared
+  apt:
+    name: cloudflared
+    state: present
+    update_cache: yes
+
+- name: Install cloudflared systemd service (token-run via .env)
+  template:
+    src: "cloudflared.service.j2"
+    dest: "/etc/systemd/system/cloudflared.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Daemon reload
+
+- name: Enable and start cloudflared
+  systemd:
+    name: cloudflared.service
+    enabled: yes
+    state: started
+
+# 9) Failover script + timer (every 30s)
+- name: Deploy failover script
+  template:
+    src: "failover.sh.j2"
+    dest: "{{ _failover_dir }}/failover.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  notify: Restart failover timer
+
+- name: Install failover service (oneshot)
+  template:
+    src: "failover.service.j2"
+    dest: "/etc/systemd/system/failover.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Daemon reload
+
+- name: Install failover timer (every 30s)
+  template:
+    src: "failover.timer.j2"
+    dest: "/etc/systemd/system/failover.timer"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Daemon reload
+
+- name: Enable and start failover timer
+  systemd:
+    name: failover.timer
+    enabled: yes
+    state: started
+
+# 10) Failback (04:30 Europe/Paris)
+- name: Deploy daily failback script
+  template:
+    src: "failback.sh.j2"
+    dest: "{{ _failover_dir }}/failback.sh"
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Install failback service
+  template:
+    src: "failback.service.j2"
+    dest: "/etc/systemd/system/failback.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Daemon reload
+
+- name: Install failback timer (04:30)
+  template:
+    src: "failback.timer.j2"
+    dest: "/etc/systemd/system/failback.timer"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Daemon reload
+
+- name: Enable and start failback timer
+  systemd:
+    name: failback.timer
+    enabled: yes
+    state: started

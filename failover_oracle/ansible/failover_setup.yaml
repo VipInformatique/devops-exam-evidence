@@ -1,0 +1,5 @@
+- name: Configure apex failover (devistor.fr) on OCI standby
+  hosts: failover
+  become: yes
+  roles:
+    - role: failover_cf
