@@ -65,7 +65,7 @@ hashes.txt              # Sommes SHA256 (générées pour vérification)
 > Logs : 0 `error`, quelques `warning` attendus (ex. `kube-root-ca.crt` existe déjà).
 > Interprétation : **RBAC/NP n’entravent pas** la restauration contrôlée (namespace isolé).
 
-Détails & journaux : voir `DR_Velero/`.
+Détails & journaux : voir `k8s-audit/`.
 
 ---
 
