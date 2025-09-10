@@ -1,0 +1,211 @@
+---
+# === STEP 1: ESTABLISH A SECURE BASELINE ===
+
+- name: "MONITORING | Apply default-deny for all ingress and egress traffic"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: monitoring-default-deny-all
+        namespace: monitoring
+      spec:
+        podSelector: {}
+        policyTypes:
+          - Ingress
+          - Egress
+
+# === STEP 2: ALLOW NECESSARY INTERNAL AND EXTERNAL TRAFFIC ===
+
+- name: "MONITORING | Allow all intra-namespace traffic"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: monitoring-allow-intra-namespace
+        namespace: monitoring
+      spec:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        ingress:
+          - from:
+            - podSelector: {} # Allow ingress from any pod in this namespace
+        egress:
+          - to:
+            - podSelector: {} # Allow egress to any pod in this namespace
+
+# --- PROMETHEUS INGRESS (fixed: no per-resource loop, build a single 'from' list) ---
+
+- name: "PROMETHEUS | Init 'from' list (VPN only)"
+  ansible.builtin.set_fact:
+    prom_ingress_from_list:
+      - ipBlock:
+          cidr: "{{ vpn_cidr }}"   # e.g. 10.10.10.0/24
+
+- name: "PROMETHEUS | Append all node IPs (/32) to 'from' list"
+  ansible.builtin.set_fact:
+    prom_ingress_from_list: "{{ prom_ingress_from_list + [ {'ipBlock': {'cidr': item + '/32'}} ] }}"
+  loop: "{{ k8s_node_ips }}"
+  loop_control:
+    label: "{{ item }}"
+  when: k8s_node_ips is defined and k8s_node_ips | length > 0
+
+- name: "MONITORING | Allow external INGRESS to Prometheus GUI"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: prometheus-allow-ingress-external
+        namespace: monitoring
+      spec:
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: prometheus
+        policyTypes: ["Ingress"]
+        ingress:
+          - from: "{{ prom_ingress_from_list }}"
+            ports:
+              - protocol: TCP
+                port: 9090
+
+# --- GRAFANA (unchanged logic; already single-apply with a built list) ---
+
+- name: MONITORING | Init 'from' list for Grafana (VPN only)
+  ansible.builtin.set_fact:
+    grafana_ingress_from_list:
+      - ipBlock:
+          cidr: "{{ vpn_cidr }}"     # e.g. 10.10.10.0/24
+
+- name: MONITORING | Append all node IPs as /32 to 'from' list
+  ansible.builtin.set_fact:
+    grafana_ingress_from_list: "{{ grafana_ingress_from_list + [ {'ipBlock': {'cidr': item + '/32'}} ] }}"
+  loop: "{{ k8s_node_ips }}"
+  loop_control:
+    label: "{{ item }}"
+  when: k8s_node_ips is defined and k8s_node_ips | length > 0
+
+- name: MONITORING | Allow external INGRESS to Grafana GUI (single apply)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: grafana-allow-ingress-external
+        namespace: monitoring
+      spec:
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: grafana
+        policyTypes: ["Ingress"]
+        ingress:
+          - from: "{{ grafana_ingress_from_list }}"
+            ports:
+              - protocol: TCP
+                port: 3000     # Grafana container default (HTTP); 443 removed
+
+# === STEP 3: CONFIGURE EGRESS FOR SCRAPING AND SYSTEM COMMUNICATION ===
+
+- name: "MONITORING | Allow EGRESS to DNS and K8s API for all pods"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: monitoring-allow-egress-system
+        namespace: monitoring
+      spec:
+        podSelector: {}
+        policyTypes: ["Egress"]
+        egress:
+          # Allow DNS resolution
+          - to:
+            - namespaceSelector: { matchLabels: { "kubernetes.io/metadata.name": "kube-system" } }
+              podSelector: { matchLabels: { "k8s-app": "kube-dns" } }
+            ports:
+              - { protocol: UDP, port: 53 }
+              - { protocol: TCP, port: 53 }
+          # Allow communication with the Kubernetes API
+          - to:
+            - ipBlock: { cidr: "{{ k8s_api_vip }}/32" }
+            ports:
+              - { protocol: TCP, port: 443 }
+
+# --- PROMETHEUS EGRESS (fixed: no per-resource loop, build a single 'to' list) ---
+
+- name: "PROMETHEUS | Build 'to' list for node endpoints (/32)"
+  ansible.builtin.set_fact:
+    prom_nodes_to_list: []
+- name: "PROMETHEUS | Append all node IPs (/32) to 'to' list"
+  ansible.builtin.set_fact:
+    prom_nodes_to_list: "{{ prom_nodes_to_list + [ {'ipBlock': {'cidr': item + '/32'}} ] }}"
+  loop: "{{ k8s_node_ips }}"
+  loop_control:
+    label: "{{ item }}"
+  when: k8s_node_ips is defined and k8s_node_ips | length > 0
+
+- name: "PROMETHEUS | Allow EGRESS to scrape external targets"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: prometheus-allow-egress-scrape-targets
+        namespace: monitoring
+      spec:
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: prometheus
+        policyTypes: ["Egress"]
+        egress:
+          # Allow scraping Traefik metrics
+          - to:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: traefik
+            ports:
+              - { protocol: TCP, port: 9100 }
+          # Allow scraping kubelet and node-exporter on all nodes
+          - to: "{{ prom_nodes_to_list }}"
+            ports:
+              - { protocol: TCP, port: 10250 } # kubelet
+              - { protocol: TCP, port: 9100 }  # node-exporter
+
+- name: "MONITORING | Allow Alertmanager egress to Internet (HTTPS only) for Telegram"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: alertmanager-allow-egress-telegram
+        namespace: "{{ monitoring_ns }}"
+      spec:
+        # Select only the Alertmanager pods from kube-prometheus-stack
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: alertmanager
+        policyTypes: ["Egress"]
+        egress:
+          # Allow HTTPS to the Internet (Telegram API uses 443)
+          - to:
+              - ipBlock:
+                  cidr: 0.0.0.0/0
+            ports:
+              - protocol: TCP
+                port: 443
+          # (Optional) If your cluster is dual-stack, also allow IPv6:
+          # - to:
+          #     - ipBlock:
+          #         cidr: ::/0
+          #   ports:
+          #     - protocol: TCP
+          #       port: 443
+  tags: [networkpolicy, monitoring, alerting]

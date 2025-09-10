@@ -1,0 +1,72 @@
+---
+- name: "CLOUDFLARE | Allow INGRESS from kubelet probes"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: cloudflared-allow-kubelet-probes
+        namespace: cloudflare
+      spec:
+        podSelector:
+          matchLabels:
+            app: cloudflared
+        policyTypes: ["Ingress"]
+        ingress:
+        - from:
+          - ipBlock: { cidr: "{{ item }}/32" }
+          ports:
+            - { protocol: TCP, port: 2000 }
+  # Pętla została przeniesiona tutaj, na poziom zadania, co jest poprawną składnią.
+  loop: "{{ k8s_node_ips }}"
+
+- name: "CLOUDFLARE | Allow EGRESS to Traefik, DNS, and Internet"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: cloudflared-egress, namespace: cloudflare }
+      spec:
+        podSelector:
+          matchLabels: { app: cloudflared }
+        policyTypes: ["Egress"]
+        egress:
+          - to:
+              - namespaceSelector:
+                  matchLabels: { kubernetes.io/metadata.name: traefik }
+                podSelector:
+                  matchLabels: { app.kubernetes.io/name: traefik }
+            ports:
+              - { protocol: TCP, port: 8000 }
+          - to:
+              - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: kube-system } }
+                podSelector: { matchLabels: { k8s-app: kube-dns } }
+            ports:
+              - { protocol: UDP, port: 53 }
+              - { protocol: TCP, port: 53 }
+          - to: [ { ipBlock: { cidr: "0.0.0.0/0" } } ]
+            ports: [ { protocol: TCP, port: 443 } ]
+          
+          - to: [ { ipBlock: { cidr: "0.0.0.0/0" } } ]  
+            ports:                                      
+              - { protocol: UDP, port: 7844 }            
+              - { protocol: TCP, port: 7844 }  
+
+- name: "CLOUDFLARE | Allow INGRESS from monitoring to metrics"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: cloudflared-allow-from-monitoring, namespace: cloudflare }
+      spec:
+        podSelector: { matchLabels: { app: cloudflared } }
+        policyTypes: ["Ingress"]
+        ingress:
+          - from:
+              - namespaceSelector:
+                  matchLabels: { kubernetes.io/metadata.name: monitoring }
+            ports:
+              - { protocol: TCP, port: 2000 }

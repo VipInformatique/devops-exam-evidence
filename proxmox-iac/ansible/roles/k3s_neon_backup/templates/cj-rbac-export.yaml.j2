@@ -18,7 +18,7 @@ spec:
           serviceAccountName: default
           containers:
           - name: kubectl
-            image: registry.k8s.io/kubectl:v1.30.3
+            image: bitnami/kubectl:1.30
             volumeMounts:
             - { name: b, mountPath: /backups }
             command: ["/bin/sh","-c"]

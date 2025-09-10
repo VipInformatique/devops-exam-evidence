@@ -10,7 +10,7 @@
   run_once: true
 
 # --------------------------------------------------------------------
-# 2. Install / upgrade Argo CD
+# 2. Argo CD installation / upgrade
 # --------------------------------------------------------------------
 - name: Deploy Argo CD
   kubernetes.core.helm:
@@ -66,7 +66,7 @@
   run_once: true
 
 # --------------------------------------------------------------------
-# 3. Wait until Application CRD is available in API
+# 3. Wait until the Application CRD is in the API
 # --------------------------------------------------------------------
 - name: Wait for Application CRD
   kubernetes.core.k8s_info:
@@ -82,7 +82,7 @@
   run_once: true
 
 # --------------------------------------------------------------------
-# 4. Create dev / prod namespaces
+# 4. dev / prod namespaces
 # --------------------------------------------------------------------
 - name: Ensure application namespaces exist
   kubernetes.core.k8s:
@@ -125,7 +125,7 @@
         sshPrivateKey: "{{ ssh_private_key }}"
 
 # -----------------------------------------------------------------
-# Task 1: Create secret for development environment (dev)
+# Task 1: Create secret for the development environment (dev)
 # -----------------------------------------------------------------
 - name: Create DeviStor application secrets for DEV environment
   kubernetes.core.k8s:
@@ -144,7 +144,7 @@
         MAIL_PASSWORD: "{{ devistor_mail_password }}"
 
 # -----------------------------------------------------------------
-# Task 2: Create secret for production environment (prod)
+# Task 2: Create secret for the production environment (prod)
 # -----------------------------------------------------------------
 - name: Create DeviStor application secrets for PROD environment
   kubernetes.core.k8s:
@@ -161,7 +161,6 @@
         DATABASE_URL: "{{ devistor_database_url_prod }}"
         ADMIN_PASSWORD: "{{ devistor_admin_password_prod }}"
         MAIL_PASSWORD: "{{ devistor_mail_password }}"
-
 # -----------------------------------------------------------------
 # Docker Hub pull secret (dev + prod) — idempotent & safe
 # Requires variables: dockerhub_username, dockerhub_token (or dockerhub_password)
@@ -172,7 +171,7 @@
   ansible.builtin.set_fact:
     _dh_namespaces: "{{ dockerhub_secret_namespaces | default(['dev','prod']) }}"
 
-# Build JSON as STRING (not object) + hide in logs
+# Build JSON as a STRING (not an object) + hide in logs
 - name: Build Docker config JSON (as string)
   no_log: true
   ansible.builtin.set_fact:
@@ -193,7 +192,7 @@
         } | to_json
       }}
 
-# If a secret with the wrong type exists — delete it (type is immutable)
+# If a secret exists with the wrong type — delete it (type is immutable)
 - name: Read existing dockerhub-creds
   no_log: true
   kubernetes.core.k8s_info:
@@ -217,7 +216,7 @@
   loop: "{{ _dh_existing.results }}"
   when: item.resources | length > 0 and item.resources[0].type != 'kubernetes.io/dockerconfigjson'
 
-# Create/Update secret properly (stringData => STRING)
+# Create/Update the secret the correct way (stringData => STRING)
 - name: Create/Update Docker Hub pull secret (dev/prod)
   no_log: true
   kubernetes.core.k8s:
@@ -234,7 +233,7 @@
         .dockerconfigjson: "{{ _dockerconfig_json }}"
   loop: "{{ _dh_namespaces }}"
 
-# (Optional) attach secret to default ServiceAccount in each namespace
+# (Optional) attach the secret to the default ServiceAccount in each namespace
 - name: Attach imagePullSecrets to default SA
   kubernetes.core.k8s:
     kubeconfig: "{{ k3s_kubeconfig }}"

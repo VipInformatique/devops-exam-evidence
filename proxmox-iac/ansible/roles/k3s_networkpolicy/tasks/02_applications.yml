@@ -1,0 +1,162 @@
+---
+# ========================================================================
+# TA SEKCJA POZOSTAJE BEZ ZMIAN
+# ========================================================================
+- name: "APPS | Apply default-deny-ingress policies"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: "{{ item }}-default-deny-ingress"
+        namespace: "{{ item }}"
+      spec:
+        podSelector: {}
+        policyTypes: [Ingress]
+  loop:
+    - dev
+    - prod
+
+- name: "APPS | Allow INGRESS from Traefik to app pods"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: "{{ item }}-allow-from-traefik"
+        namespace: "{{ item }}"
+      spec:
+        podSelector:
+          matchLabels:
+            app: "{{ devistor_ns_labels[item] }}"
+        policyTypes: [Ingress]
+        ingress:
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: traefik
+            ports:
+              - { protocol: TCP, port: "web" }
+  loop: "{{ devistor_ns_labels.keys() | list }}"
+
+- name: "APPS | Allow INGRESS from Prometheus to app pods"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: "{{ item }}-allow-from-monitoring"
+        namespace: "{{ item }}"
+      spec:
+        podSelector:
+          matchLabels:
+            app: "{{ devistor_ns_labels[item] }}"
+        policyTypes: [Ingress]
+        ingress:
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: monitoring
+            ports:
+              - { protocol: TCP, port: "web" }
+  loop: "{{ devistor_ns_labels.keys() | list }}"
+
+- name: "APPS | Apply default-deny-egress policies"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: "{{ item }}-default-deny-egress"
+        namespace: "{{ item }}"
+      spec:
+        podSelector: {}
+        policyTypes: [Egress]
+        egress: []
+  loop:
+    - dev
+    - prod
+
+- name: "APPS | Allow EGRESS to DNS (CoreDNS) for all pods"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: "{{ item }}-egress-allow-dns"
+        namespace: "{{ item }}"
+      spec:
+        podSelector: {}
+        policyTypes: [Egress]
+        egress:
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: kube-system
+                podSelector:
+                  matchLabels:
+                    k8s-app: kube-dns
+            ports:
+              - { protocol: UDP, port: 53 }
+              - { protocol: TCP, port: 53 }
+  loop:
+    - dev
+    - prod
+
+# ========================================================================
+# PONIŻEJ ZNAJDUJĄ SIĘ ZMIANY
+# ========================================================================
+
+# KROK 1: ZBUDUJ LISTĘ BLOKÓW IP DLA NEON POSTGRES
+- name: "APPS | Prepare list of ipBlock objects for Neon Postgres"
+  ansible.builtin.set_fact:
+    neon_pg_ip_blocks: "{{ neon_pg_ip_blocks | default([]) + [{'ipBlock': {'cidr': item}}] }}"
+  loop: "{{ neon_cidrs }}"
+  run_once: true # To zadanie musi wykonać się tylko raz
+
+# KROK 2: ZASTOSUJ POLITYKĘ, PRZEKAZUJĄC GOTOWĄ LISTĘ DO SZABLONU
+- name: "APPS | Allow EGRESS to Neon Postgres for app pods"
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template','np-egress-neon.yaml.j2') | from_yaml }}"
+  vars:
+    ns: "{{ item.ns }}"
+    app_label: "{{ item.app_label }}"
+    # Przekazujemy gotową listę do szablonu
+    neon_pg_ip_blocks_local: "{{ neon_pg_ip_blocks }}"
+    neon_port_local: "{{ neon_port }}"
+  loop:
+    - { ns: "dev",  app_label: "{{ devistor_ns_labels['dev'] }}" }
+    - { ns: "prod", app_label: "{{ devistor_ns_labels['prod'] }}" }
+
+# ========================================================================
+# TA SEKCJA POZOSTAJE BEZ ZMIAN
+# ========================================================================
+- name: "APPS | Allow EGRESS to SMTP for app pods"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: "{{ item.ns }}-egress-allow-smtp-wide"
+        namespace: "{{ item.ns }}"
+      spec:
+        podSelector:
+          matchLabels:
+            app: "{{ item.app_label }}"
+        policyTypes: ["Egress"]
+        egress:
+          - to:
+              - ipBlock: { cidr: "0.0.0.0/0" }
+            ports:
+              - { protocol: TCP, port: 465 }
+              - { protocol: TCP, port: 587 }
+  loop:
+    - { ns: "dev",  app_label: "{{ devistor_ns_labels['dev'] }}" }
+    - { ns: "prod", app_label: "{{ devistor_ns_labels['prod'] }}" }

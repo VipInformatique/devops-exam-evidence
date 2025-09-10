@@ -3,7 +3,7 @@
   vars_files:
     - group_vars/all.yml
   tasks:
-    - name: Show vault pass
+    - name: Pokaż hasło vault
       debug:
-        msg: "Password is {{ ... }}"
+        msg: "Password to: {{ PODAJWARTOSC }}"
 

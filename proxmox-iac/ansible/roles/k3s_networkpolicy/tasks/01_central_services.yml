@@ -1,0 +1,48 @@
+---
+# Prepare a list of ipBlock objects based on the k8s_node_ips variable
+- name: "TRAEFIK | Prepare list of node IP blocks for probes"
+  ansible.builtin.set_fact:
+    traefik_probe_ip_blocks: "{{ traefik_probe_ip_blocks | default([]) + [{'ipBlock': {'cidr': item + '/32'}}] }}"
+  loop: "{{ k8s_node_ips }}"
+  run_once: true
+
+# Apply a single, complete policy using the prepared list
+- name: "TRAEFIK | Apply INGRESS from Cloudflare, Probes, and Prometheus"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: traefik-allow-ingress-sources
+        namespace: traefik
+      spec:
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: traefik
+        policyTypes: [Ingress]
+        ingress:
+          # Rule 1: Allow traffic from Cloudflare
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: cloudflare
+                podSelector:
+                  matchLabels:
+                    app: cloudflared
+            ports:
+              - { protocol: TCP, port: 8000 }
+              - { protocol: TCP, port: 8443 }
+
+          # Rule 2: Allow traffic from Kubelet probes (using the prepared list)
+          - from: "{{ traefik_probe_ip_blocks }}"
+            ports:
+              - { protocol: TCP, port: 9000 }
+
+          # Rule 3: Allow traffic from Prometheus for metrics scraping
+          - from:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: monitoring
+            ports:
+              - { protocol: TCP, port: 9100 }

@@ -1,0 +1,9 @@
+{% if 'k3s_masters' in group_names %}
+kube-scheduler-arg:
+  - bind-address=0.0.0.0
+kube-controller-manager-arg:
+  - bind-address=0.0.0.0
+{% endif %}
+
+kube-proxy-arg:
+  - metrics-bind-address=0.0.0.0

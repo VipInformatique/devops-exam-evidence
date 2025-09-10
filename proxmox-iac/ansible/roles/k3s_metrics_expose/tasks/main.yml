@@ -1,0 +1,47 @@
+- name: (debug) pokaż, co wyrenderuje szablon cm
+  ansible.builtin.debug:
+    msg: "{{ lookup('template', 'svc-cm.yaml.j2') }}"
+  delegate_to: localhost
+
+- name: Apply controller-manager metrics (Service+Endpoints+SM)
+  kubernetes.core.k8s:
+    state: present
+    template: "{{ role_path }}/templates/svc-cm.yaml.j2"
+  delegate_to: localhost
+
+
+- name: Apply scheduler metrics (Service+Endpoints+SM)
+  kubernetes.core.k8s:
+    state: present
+    template: "{{ role_path }}/templates/svc-scheduler.yaml.j2"
+  delegate_to: localhost
+
+- name: Apply kube-proxy metrics (Service+Endpoints+SM)
+  kubernetes.core.k8s:
+    state: present
+    template: "{{ role_path }}/templates/svc-proxy.yaml.j2"
+  delegate_to: localhost
+
+
+- name: Wait 10s for Prometheus to refresh targets
+  ansible.builtin.pause:
+    seconds: 10
+  delegate_to: localhost
+
+- name: Check that ServiceMonitors exist (kube-prometheus-stack watch)
+  kubernetes.core.k8s_info:
+    api_version: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    namespace: "{{ kps_namespace }}"
+    label_selectors:
+      - "{{ kps_release_label }}={{ kps_release_name }}"
+      - "{{ k3s_metrics_label_key }}={{ k3s_metrics_label_val }}"
+  register: sm_list
+  delegate_to: localhost
+
+- name: Assert three ServiceMonitors are present
+  ansible.builtin.assert:
+    that:
+      - sm_list.resources | length >= 3
+    fail_msg: "Nie widzę wszystkich ServiceMonitorów (ctrl-mgr/scheduler/kube-proxy)."
+  delegate_to: localhost

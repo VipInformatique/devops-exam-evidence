@@ -3,5 +3,5 @@ velero_chart_version: 5.2.0
 r2_bucket: k3s-devistor  
 velero_namespace: velero
 velero_user: velero
-velero_schedule_cron: "0 2 * * *"   # everyday 02:00
-velero_backup_ttl: "360h0m0s"       # 15 days
+velero_schedule_cron: "0 2 * * *"  
+velero_backup_ttl: "360h0m0s"     

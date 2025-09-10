@@ -4,7 +4,7 @@ kps_release: kube-prometheus-stack
 alertmanager_secret_name: alertmanager-config
 kubeconfig_path: "{{ k3s_kubeconfig | default('~/.kube/config') }}"
 
-# Telegram
+# Telegram (hardcoded for now; move to Vault later)
 telegram_bot_token: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           34306236386461663962346363623433666334393835666562376632333663656565393033366662

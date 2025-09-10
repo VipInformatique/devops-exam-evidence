@@ -3,7 +3,6 @@
     desired_config: "{{ lookup('template', 'datacenter.fw.j2') }}"
   delegate_to: localhost  
   run_once: true          
-
 - name: Krok 2 Wczytaj obecną konfigurację z serwera Proxmox
   slurp:
     src: /etc/pve/firewall/datacenter.fw

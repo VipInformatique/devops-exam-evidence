@@ -1,0 +1,16 @@
+# templates/promtail-values.yaml.j2
+config:
+  clients:
+    - url: http://{{ metallb_shared_ip | default('192.168.88.14') }}:3100/loki/api/v1/push
+  snippets:
+    pipelineStages:
+      - match:
+          selector: '{job=~".+"}'
+          stages:
+            - drop:
+                expression: "negative structured metadata"
+                drop_counter_reason: "LOKI_REPEATING_ERROR_FILTERED"
+            - drop:
+                expression: "context canceled"
+                drop_counter_reason: "LOKI_CONTEXT_CANCELED"
+  logLevel: {{ promtail_log_level | default('debug') }}

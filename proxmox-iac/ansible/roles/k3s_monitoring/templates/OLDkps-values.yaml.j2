@@ -1,0 +1,71 @@
+# templates/kps-values.yaml.j2
+# ---------------- Prometheus ----------------
+prometheus:
+  prometheusSpec:
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: {{ nfs_storage_class | default('nfs-client') }}
+          resources:
+            requests:
+              storage: 10Gi
+    additionalScrapeConfigs:
+      - job_name: "node-exporter"
+        static_configs:
+          - targets: {{ prometheus_targets | default(['192.168.100.2:9100', '192.168.100.3:9100', '192.168.100.4:9100']) }}
+  service:
+    type: LoadBalancer
+    loadBalancerIP: {{ metallb_shared_ip | default('192.168.88.14') }}
+    annotations:
+      metallb.universe.tf/allow-shared-ip: {{ metallb_shared_annotation | default('monitoring') }}
+    servicePort: 9090
+
+# ---------------- Grafana -------------------
+grafana:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: {{ nfs_storage_class | default('nfs-client') }}
+    accessModes: [ReadWriteOnce]
+    size: 2Gi
+  sidecar:
+    datasources:
+      enabled: true
+      defaultDatasourceEnabled: false
+      additionalDataSources:
+        - name: Prometheus
+          type: prometheus
+          url: http://kube-prometheus-stack-prometheus.monitoring.svc:9090
+          isDefault: true
+          jsonData:
+            logs__datasourceUid: "loki"
+        - name: Loki
+          type: loki
+          url: http://loki.monitoring.svc:3100
+          uid: "loki"
+          isDefault: false
+  service:
+    type: LoadBalancer
+    loadBalancerIP: {{ metallb_shared_ip | default('192.168.88.14') }}
+    annotations:
+      metallb.universe.tf/allow-shared-ip: {{ metallb_shared_annotation | default('monitoring') }}
+    port: 3000
+
+prometheus-node-exporter:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"

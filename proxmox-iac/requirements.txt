@@ -1,2 +1,0 @@
-ansible==7.7.0
-kubernetes==33.1.0

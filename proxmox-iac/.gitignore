@@ -1,0 +1,124 @@
+# -------------------------------
+# OS / Editors / Misc
+# -------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# -------------------------------
+# Python / tooling
+# -------------------------------
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# -------------------------------
+# Secrets / Credentials (never commit)
+# -------------------------------
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.crt
+*.kube
+kubeconfig
+kubeconfig.yaml
+vault_pass.txt
+.vault_pass*
+vault_password_file
+*.vault
+*.secret.yaml
+**/credentials.json
+**/*_credentials.json
+**/secrets/*
+**/*.age
+**/*.gpg
+
+# Explicitly ignore full credentials folders (e.g. Velero)
+ansible/credentials/
+
+# -------------------------------
+# Terraform
+# -------------------------------
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.plan
+tfplan*
+plan.out
+
+# -------------------------------
+# Ansible
+# -------------------------------
+*.retry
+.vagrant/
+inventory.ini
+host_vars/
+group_vars/
+
+# Allow sanitized examples
+!inventory_sanitized.ini
+!group_vars_sanitized/
+!host_vars_sanitized/
+
+# -------------------------------
+# Kubernetes sensitive manifests
+# (block anything that looks like secrets or private values)
+# -------------------------------
+**/*secret*.y*ml
+**/*secrets*.y*ml
+**/*-secret.y*ml
+**/*-values-private.y*ml
+
+# -------------------------------
+# Logs / Outputs / Temp
+# -------------------------------
+*.log
+*.out
+logs/
+tmp/
+temp/
+*.cache
+
+# -------------------------------
+# Big archives / binary blobs
+# (attach these to a GitHub Release instead of committing)
+# -------------------------------
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+*.bin
+*.iso
+
+# -------------------------------
+# Keep visual / evidence assets
+# Uncomment if you want to track screenshots, diagrams, docs
+# -------------------------------
+# !*.png
+# !*.jpg
+# !*.jpeg
+# !*.svg
+# !*.pdf
+# !*.docx

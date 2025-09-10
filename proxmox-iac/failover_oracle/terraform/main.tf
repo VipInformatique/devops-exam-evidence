@@ -2,10 +2,10 @@
 
 resource "oci_core_instance" "failover" {
   # These attributes must match the current VM settings in OCI
-  availability_domain = var.availability_domain         # e.g. YbcB:EU-PARIS-1-AD-1
+  availability_domain = var.availability_domain # e.g. YbcB:EU-PARIS-1-AD-1
   compartment_id      = var.compartment_ocid
-  display_name        = var.vm_name                     # "failover-DeviStor"
-  shape               = var.shape                       # "VM.Standard.E2.1.Micro"
+  display_name        = var.vm_name # "failover-DeviStor"
+  shape               = var.shape   # "VM.Standard.E2.1.Micro"
 
   # Shape config applies only to Flex shapes; for E2.1.Micro this block is skipped
   dynamic "shape_config" {
@@ -28,7 +28,7 @@ resource "oci_core_instance" "failover" {
     subnet_id        = var.subnet_ocid
     assign_public_ip = var.assign_public_ip
     # hostname_label is optional and omitted here to minimize drift
-    nsg_ids          = var.nsg_id == "" ? null : [var.nsg_id]
+    nsg_ids = var.nsg_id == "" ? null : [var.nsg_id]
   }
 
   # Provide SSH public key; omit cloud-init to keep plans clean after import
@@ -79,6 +79,6 @@ EOT
 
 # Useful outputs
 output "instance_id" { value = oci_core_instance.failover.id }
-output "public_ip"   { value = data.oci_core_vnic.primary.public_ip_address }
-output "private_ip"  { value = data.oci_core_vnic.primary.private_ip_address }
-output "ssh_user"    { value = var.ssh_user }
+output "public_ip" { value = data.oci_core_vnic.primary.public_ip_address }
+output "private_ip" { value = data.oci_core_vnic.primary.private_ip_address }
+output "ssh_user" { value = var.ssh_user }

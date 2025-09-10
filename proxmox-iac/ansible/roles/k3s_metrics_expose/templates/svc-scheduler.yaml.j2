@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ k3s_svc_scheduler }}"
+  namespace: "{{ k3s_metrics_namespace }}"
+  labels:
+    "{{ kps_release_label }}": "{{ kps_release_name }}"
+    "{{ k3s_metrics_label_key }}": "{{ k3s_metrics_label_val | string }}"
+spec:
+  ports:
+  - name: https-metrics
+    port: 10259
+    targetPort: 10259
+  clusterIP: "None"
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: "{{ k3s_svc_scheduler }}"
+  namespace: "{{ k3s_metrics_namespace }}"
+subsets:
+- addresses:
+{% for ip in k3s_master_endpoints %}
+  - ip: {{ ip }}
+{% endfor %}
+  ports:
+  - name: https-metrics
+    port: 10259
+    protocol: TCP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: "{{ k3s_svc_scheduler }}"
+  namespace: "{{ kps_namespace }}"
+  labels:
+    "{{ kps_release_label }}": "{{ kps_release_name }}"
+    "{{ k3s_metrics_label_key }}": "{{ k3s_metrics_label_val | string }}"
+spec:
+  jobLabel: "{{ k3s_svc_scheduler }}"
+  selector:
+    matchLabels:
+      "{{ k3s_metrics_label_key }}": "{{ k3s_metrics_label_val | string }}"
+  namespaceSelector:
+    matchNames: [ "{{ k3s_metrics_namespace }}" ]
+  endpoints:
+  - port: https-metrics
+    interval: 30s
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true

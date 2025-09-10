@@ -1,32 +1,22 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: cloudflare
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cloudflared-config
   namespace: cloudflare
-
 data:
   config.yaml: |
     tunnel: {{ cloudflare_tunnel_id }}
     credentials-file: /etc/cloudflared/creds/credentials.json
-    protocol: {{ cloudflare_tunnel_protocol | default("http2") }}
+    no-autoupdate: true
+    protocol: http2           # ensure HTTP/2
+    edge-ip-version: 4        # prefer IPv4 egress
+    metrics: 0.0.0.0:2000
     ingress:
-{% for route in cloudflared_tunnel_routes %}
-      - hostname: {{ route.hostname }}
-        service: {{ route.service }}
+{% for r in cloudflared_tunnel_routes %}
+      - hostname: {{ r.hostname }}
+        service: {{ r.service }}
 {% endfor %}
       - service: http_status:404
-    originRequest:
-      noTLSVerify: true
-      http2Origin: true
-      connectTimeout: 30s
-      tcpKeepAlive: 30s
-      idleTimeout: 300s
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -34,32 +24,75 @@ metadata:
   name: cloudflared
   namespace: cloudflare
 spec:
-  replicas: 2
+  replicas: 1  # scale is enforced by your Ansible k8s_scale task; leaving 1 here is fine
   selector:
     matchLabels:
       app: cloudflared
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   template:
     metadata:
       labels:
         app: cloudflared
     spec:
+      # Spread replicas across distinct nodes by hostname.
+      # DoNotSchedule = "hard"; use ScheduleAnyway for "soft" preference.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: cloudflared  
       nodeSelector:
         role: worker
+
       containers:
-      - name: cloudflared
-        image: cloudflare/cloudflared:latest
-        args:
-          - tunnel
-          - --config
-          - /etc/cloudflared/config.yaml
-          - run
-        volumeMounts:
-          - name: config
-            mountPath: /etc/cloudflared/config.yaml
-            subPath: config.yaml
-          - name: creds
-            mountPath: /etc/cloudflared/creds/credentials.json
-            subPath: credentials.json
+        - name: cloudflared
+          image: cloudflare/cloudflared:2025.8.1  # pin the image
+          imagePullPolicy: IfNotPresent
+          args:
+            - tunnel
+            - --config
+            - /etc/cloudflared/config.yaml
+            - --loglevel
+            - debug
+            - --metrics
+            - 0.0.0.0:2000
+            - --protocol
+            - http2
+            - --edge-ip-version
+            - "4"
+            - run
+          ports:
+            - name: metrics
+              containerPort: 2000
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 2000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 12
+          volumeMounts:
+            - name: config
+              mountPath: /etc/cloudflared/config.yaml
+              subPath: config.yaml
+            - name: creds
+              mountPath: /etc/cloudflared/creds/credentials.json
+              subPath: credentials.json
       volumes:
         - name: config
           configMap:

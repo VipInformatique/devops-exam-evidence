@@ -56,7 +56,7 @@ spec:
             - manager
           env:
             - name: vip_interface
-              value: "ens18" 
+              value: "ens18"  # Zmień jeśli Twój interfejs to np. eth0
             - name: vip_address
               value: "192.168.88.13"
             - name: vip_leaderelection

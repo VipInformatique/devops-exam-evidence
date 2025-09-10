@@ -1,6 +1,6 @@
 # 9. Generate API token devistor@pve!tf (cluster-wide, run once)
 - block:
-    # 9.1 Check if the token already exists
+    # 9.1  Check if token already exists
     - name: Check if token tf exists
       command: pveum user token list devistor@pve --output-format json
       register: token_list
@@ -10,11 +10,11 @@
       set_fact:
         token_json: "{{ token_list.stdout | from_json }}"
 
-    - name: Check if token tf exists
+    - name: Verify if token tf exists
       set_fact:
         tf_token_exists: "{{ 'tf' in (token_json | map(attribute='tokenid') | list) }}"
 
-    # 9.2 Create token only if not found
+    # 9.2  Create token only if not found
     - name: Create token tf when absent
       command: >-
         pveum user token add devistor@pve tf
@@ -25,14 +25,14 @@
       when: not tf_token_exists
       changed_when: token_create.rc == 0
 
-    # 9.3 Assemble full string user!id:secret (only if freshly created)
+    # 9.3  Assemble full string user!id:secret (only for newly created token)
     - name: Assemble full token string
       set_fact:
         proxmox_api_token_full: "devistor@pve!tf:{{ (token_create.stdout | from_json).value }}"
       when: token_create is changed
       no_log: true
 
-    # 9.4 Save secret on the control node next to the playbook
+    # 9.4  Save secret on the control node next to the playbook
     - name: Store token on control node
       copy:
         content: "{{ proxmox_api_token_full }}"
@@ -42,7 +42,7 @@
       delegate_to: localhost
       become: false
 
-    # 9.5 Export environment variable TF_VAR_proxmox_api_token
+    # 9.5  Export TF_VAR_proxmox_api_token environment variable
     - name: Export TF_VAR_proxmox_api_token
       copy:
         dest: "{{ playbook_dir }}/.terraform_env"
@@ -53,7 +53,7 @@
       delegate_to: localhost
       become: false
 
-    # 9.6 Debug – show status only when token was actually created
+    # 9.6  Debug – show status only if token was created
     - name: Show debug info when token created
       debug:
         msg: "token_create.changed={{ token_create is changed }}, token_value={{ proxmox_api_token_full }}"

@@ -148,7 +148,7 @@ resource "proxmox_virtual_environment_vm" "k3s_worker" {
 }
 
 ###############################################################################
-# HA – bez zmian
+# HA
 ###############################################################################
 resource "proxmox_virtual_environment_hagroup" "k3s_cluster" {
   group        = "k3s-cluster"

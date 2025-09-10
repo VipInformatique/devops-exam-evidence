@@ -1,0 +1,121 @@
+---
+# === STEP 1: ESTABLISH A SECURE BASELINE ===
+
+- name: "ARGOCD | Apply default-deny for ingress traffic"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: argocd-default-deny-ingress, namespace: argocd }
+      spec: { podSelector: {}, policyTypes: ["Ingress"] }
+
+- name: "ARGOCD | Apply default-deny for egress traffic"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: argocd-default-deny-egress, namespace: argocd }
+      spec: { podSelector: {}, policyTypes: ["Egress"] }
+
+# === STEP 2: PREPARE LIST OF EGRESS RULES (THE RELIABLE WAY) ===
+
+- name: "ARGOCD | Prepare base list of egress rules (DNS and API VIP)"
+  ansible.builtin.set_fact:
+    argocd_system_egress_rules:
+      - to:
+        - namespaceSelector: { matchLabels: { 'kubernetes.io/metadata.name': 'kube-system' } }
+          podSelector: { matchLabels: { 'k8s-app': 'kube-dns' } }
+        ports:
+          - { protocol: UDP, port: 53 }
+          - { protocol: TCP, port: 53 }
+      - to:
+        - ipBlock: { cidr: "{{ k8s_api_vip }}/32" }
+        ports:
+          - { protocol: TCP, port: 443 }
+  run_once: true
+
+- name: "ARGOCD | Append egress rules for K8s API Nodes"
+  ansible.builtin.set_fact:
+    argocd_system_egress_rules: "{{ argocd_system_egress_rules + [{'to': [{'ipBlock': {'cidr': item + '/32'}}], 'ports': [{'protocol': 'TCP', 'port': 6443}] }] }}"
+  loop: "{{ k8s_node_ips }}"
+  run_once: true
+
+# === STEP 3: ALLOW NECESSARY COMMUNICATION ===
+
+- name: "ARGOCD | Allow all intra-namespace traffic"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: argocd-allow-intra-namespace
+        namespace: argocd
+      spec:
+        podSelector: {}
+        policyTypes: [Ingress, Egress]
+        ingress:
+          - from:
+            - podSelector: {} # Allow ingress from any pod in this namespace
+        egress:
+          - to:
+            - podSelector: {} # Allow egress to any pod in this namespace
+
+- name: "ARGOCD | Allow INGRESS from Traefik to argocd-server"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: argocd-allow-ingress-from-traefik, namespace: argocd }
+      spec:
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-server
+        policyTypes: ["Ingress"]
+        ingress:
+          - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: traefik
+            ports:
+              - { protocol: TCP, port: 8080 }
+
+- name: "ARGOCD | Allow EGRESS to system services (DNS, K8s API)"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: argocd-allow-egress-system, namespace: argocd }
+      spec:
+        podSelector: {} # Apply to all pods in the namespace
+        policyTypes: ["Egress"]
+        egress: "{{ argocd_system_egress_rules }}"
+
+- name: "ARGOCD | Allow EGRESS to Internet for Git/Helm"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: argocd-allow-egress-internet, namespace: argocd }
+      spec:
+        # This policy only applies to pods that need to access Git/Helm repos
+        podSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - argocd-repo-server
+                - argocd-applicationset-controller
+        policyTypes: ["Egress"]
+        egress:
+          - to:
+            - ipBlock: { cidr: "0.0.0.0/0" }
+            ports:
+              - { protocol: TCP, port: 443 } # HTTPS
+              - { protocol: TCP, port: 22 }  # SSH
+

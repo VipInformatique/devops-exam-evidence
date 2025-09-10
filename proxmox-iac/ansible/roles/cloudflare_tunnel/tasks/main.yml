@@ -1,26 +1,16 @@
 ---
 - name: Create Cloudflare namespace
   kubernetes.core.k8s:
-    kubeconfig: "{{ k3s_kubeconfig  }}"
+    kubeconfig: "{{ k3s_kubeconfig }}"
     definition:
       apiVersion: v1
       kind: Namespace
       metadata:
         name: cloudflare
-  ignore_errors: true  # if it already exists
+  ignore_errors: true  # ok if it already exists
 
-- name: Render Cloudflared manifest
-  template:                    
-    src: cloudflared.yaml.j2
-    dest: /tmp/cloudflared.yaml
-
-- name: Deploy Cloudflared resources
-  kubernetes.core.k8s:
-    kubeconfig: "{{ k3s_kubeconfig }}"
-    state: present
-    src: /tmp/cloudflared.yaml   
-
-- name: Add credentials secret directly from home directory
+# IMPORTANT: ensure the credentials Secret exists BEFORE deploying resources that mount it
+- name: Create/Update cloudflared credentials Secret from local file
   kubernetes.core.k8s:
     kubeconfig: "{{ k3s_kubeconfig }}"
     namespace: cloudflare
@@ -32,10 +22,61 @@
         name: cloudflared-credentials
       type: Opaque
       data:
+        # read file from controller and base64-encode; fails early if path is wrong
         credentials.json: "{{ lookup('file', cloudflared_credentials_path) | b64encode }}"
-  when: cloudflare_tunnel_id is defined
+  when:
+    - cloudflared_credentials_path is defined
+    - cloudflared_credentials_path | length > 0
+  register: secret_result
 
-- name: CLOUDFLARED | Build list of DNS records to create
+# Render your combined manifest (ConfigMap + Deployment, etc.)
+- name: Render Cloudflared manifest
+  template:
+    src: cloudflared.yaml.j2
+    dest: /tmp/cloudflared.yaml
+
+# Apply rendered resources (idempotent)
+- name: Deploy Cloudflared resources
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    src: /tmp/cloudflared.yaml
+  register: deploy_result
+
+- name: DEBUG replicas var
+  debug:
+    msg: "cloudflared_replicas={{ cloudflared_replicas | default('UNSET') }}"
+
+- name: Ensure cloudflared replicas count
+  kubernetes.core.k8s_scale:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    api_version: apps/v1
+    kind: Deployment
+    name: cloudflared
+    namespace: cloudflare
+    replicas: "{{ cloudflared_replicas | default(1) }}"
+
+# Trigger a safe rolling restart ONLY when something actually changed
+# (e.g., new credentials or updated manifest)
+- name: Restart cloudflared only if needed
+  when: secret_result.changed or deploy_result.changed
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: patched
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: cloudflared
+        namespace: cloudflare
+      spec:
+        template:
+          metadata:
+            annotations:
+              kubectl.kubernetes.io/restartedAt: "{{ lookup('pipe','date -u +%Y-%m-%dT%H:%M:%SZ') }}"
+
+# Build DNS records list for Cloudflare API (unchanged logic)
+- name: CLOUDFLARED | Build DNS records list to create
   ansible.builtin.set_fact:
     cloudflare_dns_records: "{{ (cloudflare_dns_records | default([])) + [dns_rec] }}"
   vars:
@@ -52,6 +93,10 @@
   delegate_to: localhost
   run_once: true
 
+# Keep your existing metrics tasks as-is
+- import_tasks: metrics.yml
+
+# Ensure CNAME records exist in Cloudflare (unchanged behavior)
 - name: "CLOUDFLARED | Ensure CNAME records exist in Cloudflare"
   community.general.cloudflare_dns:
     zone: "{{ zone_name }}"

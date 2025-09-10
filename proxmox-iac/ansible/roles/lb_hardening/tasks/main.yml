@@ -1,20 +1,23 @@
 - name: Restrict monitoring LBs to VPN
+  # Ensures each monitoring LoadBalancer Service only accepts traffic
+  # from the VPN admin CIDR (WireGuard). Idempotent merge into .spec.
   kubernetes.core.k8s:
-    kubeconfig: "{{ k3s_kubeconfig }}"
+    kubeconfig: "{{ k3s_kubeconfig }}"           # Path to kubeconfig used by Ansible
     api_version: v1
     kind: Service
-    namespace: "{{ monitoring_ns }}"
-    name: "{{ item }}"
-    merge_type: strategic-merge
+    namespace: "{{ monitoring_ns }}"             # Namespace that contains monitoring Services
+    name: "{{ item }}"                           # Service name from the loop
+    merge_type: strategic-merge                  # Merge spec without overwriting unrelated fields
     state: present
     definition:
       spec:
-        loadBalancerSourceRanges:
-          - "{{ wg_admin_cidr }}"
-  loop: "{{ monitoring_lb_svcs }}"
-  loop_control: { label: "{{ item }}" }
+        loadBalancerSourceRanges:                # Allowed client CIDRs for LB traffic
+          - "{{ wg_admin_cidr }}"                # Your WireGuard admin network (e.g. 10.10.10.0/24)
+  loop: "{{ monitoring_lb_svcs }}"               # List of Service names to patch
+  loop_control: { label: "{{ item }}" }          # Show the Service name in Ansible output
 
-- name: Check configured ranges (log)
+- name: Verify configured ranges (log only)
+  # Reads back each Service to confirm loadBalancerSourceRanges is set as expected.
   kubernetes.core.k8s_info:
     kubeconfig: "{{ k3s_kubeconfig }}"
     api_version: v1
@@ -22,10 +25,11 @@
     namespace: "{{ monitoring_ns }}"
     name: "{{ item }}"
   loop: "{{ monitoring_lb_svcs }}"
-  register: lb_info
-  changed_when: false
+  register: lb_info                              # Stores fetched Service objects
+  changed_when: false                            # Pure read—do not mark task as changed
 
-- name: Print ranges
+- name: Print effective ranges
+  # Logs the loadBalancerSourceRanges actually present on each Service.
   debug:
     msg: "{{ item.resources[0].spec.loadBalancerSourceRanges | default([]) }}"
   loop: "{{ lb_info.results }}"

@@ -11,11 +11,10 @@ items:
       project: default
       source:
         repoURL: git@github.com:VipInformatique/k3s-gitops-infra.git
-        path: apps/devistor-app/overlays/dev
+        path: apps/devistor-app/releases/dev
         targetRevision: main
       destination:
         server: https://kubernetes.default.svc
-        namespace: dev
       syncPolicy:
         automated:
           prune: true
@@ -31,11 +30,10 @@ items:
       project: default
       source:
         repoURL: git@github.com:VipInformatique/k3s-gitops-infra.git
-        path: apps/devistor-app/overlays/prod
+        path: apps/devistor-app/releases/prod
         targetRevision: main
       destination:
         server: https://kubernetes.default.svc
-        namespace: prod
       syncPolicy:
         automated:
           prune: true

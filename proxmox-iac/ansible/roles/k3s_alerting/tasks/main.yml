@@ -24,7 +24,7 @@
         alertmanager.yaml: "{{ lookup('template', 'alertmanager-config.yaml.j2') }}"
   tags: [alerting, secret]
 
-# 2a) Ensure Alertmanager CR is Reconciled=True (operator accepted config)
+# 2) Operator accepted the config + restart + pods readiness
 - name: Wait until Alertmanager CR is Reconciled=True
   kubernetes.core.k8s_info:
     api_version: monitoring.coreos.com/v1
@@ -43,21 +43,64 @@
   delay: 5
   tags: [alerting, wire]
 
-# 2b) Additionally, wait until Alertmanager pods are Ready
+- name: Restart Alertmanager to reload config
+  ansible.builtin.command: >
+    kubectl -n {{ monitoring_ns }}
+    rollout restart statefulset alertmanager-{{ kps_release }}-alertmanager
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  changed_when: true
+  tags: [alerting, wire]
+
 - name: Wait until Alertmanager pods are Ready
   ansible.builtin.command: >
     kubectl -n {{ monitoring_ns }}
     wait --for=condition=ready pod
     -l app.kubernetes.io/name=alertmanager,alertmanager={{ kps_release }}-alertmanager
     --timeout=300s
-  changed_when: false
-  register: am_wait
-  failed_when: am_wait.rc != 0
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
+  register: am_wait
+  changed_when: false
+  failed_when: am_wait.rc != 0
   tags: [alerting, wire]
 
-# 3) Prometheus Rules
+# 3) Verify via API (reliable endpoint: alertmanager-operated)
+- name: Get Alertmanager /api/v2/status via ephemeral curl pod
+  ansible.builtin.command: >
+    kubectl -n {{ monitoring_ns }}
+    run amcheck --rm -i --restart=Never --image=curlimages/curl --
+    curl -s --fail http://alertmanager-operated.{{ monitoring_ns }}.svc:9093/api/v2/status
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  register: am_status
+  changed_when: false
+  retries: 10
+  delay: 3
+  until: am_status.rc == 0
+  failed_when: am_status.rc != 0
+  tags: [alerting, verify]
+
+- name: Assert that Alertmanager uses our receivers
+  ansible.builtin.assert:
+    that:
+      - am_status.stdout is search('name: devistor-default')
+      - am_status.stdout is search('name: devistor-ops')
+      - am_status.stdout is search('name: devistor-critical')
+    fail_msg: >
+      Alertmanager nie używa naszego secreta albo nie przeładował configu.
+      Sprawdź alertmanager.configSecret={{ alertmanager_secret_name }} i wykonaj rollout restart.
+    success_msg: "OK: AM wczytał naszych receiverów (default/ops/critical)."
+  tags: [alerting, verify]
+
+# 4) Prometheus rules (first recordings, then alerts)
+- name: Apply Devistor latency recording rules
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "{{ kubeconfig_path }}"
+    definition: "{{ lookup('template', 'prometheusrule-latency.yaml.j2') | from_yaml }}"
+  tags: [alerting, rules, latency]
+
 - name: Apply Devistor alert rules
   kubernetes.core.k8s:
     state: present

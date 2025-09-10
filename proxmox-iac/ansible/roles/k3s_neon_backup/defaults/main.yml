@@ -1,39 +1,40 @@
-# Kubeconfig path used by Ansible/Kubectl to access the K3s cluster
+# Kubeconfig
 k3s_kubeconfig: "/etc/rancher/k3s/k3s.yaml"
 
-# Namespace where backup jobs will be deployed
+# Namespace
 backup_ns: "sqldump"
 
-# Timezone used by CronJobs (important for scheduling consistency)
+# Timezone
 marker_tz: "Europe/Paris"
 
-# NFS (Synology) settings for persistent storage of backups
-nfs_server: "192.168.88.5"           # NFS server IP (Synology)
-nfs_path: "/volume1/k3s-backup"      # Exported path on Synology
-pv_name: "pv-nfs-syno-backups"       # PersistentVolume name
-pvc_name: "synology-backups-pvc"     # PersistentVolumeClaim name
-storage_class: "nfs-syno-backups"    # StorageClass for NFS
-pv_capacity: "100Gi"                 # Maximum storage available
-pvc_request: "50Gi"                  # Requested storage (per PVC)
+# NFS (Synology)
+nfs_server: "192.168.88.5"
+nfs_path: "/volume1/k3s-backup"
+pv_name: "pv-nfs-syno-backups"
+pvc_name: "synology-backups-pvc"
+storage_class: "nfs-syno-backups"
+pv_capacity: "100Gi"
+pvc_request: "50Gi"
 
-# CronJobs schedules (in CRON format)
-dump_schedule: "0 3 * * *"           # Daily DB dump at 03:00
-restorepoint_schedule: "0 * * * *"   # Hourly restore point marker
-cleanup_schedule: "30 3 * * *"       # Daily cleanup at 03:30
-smoke_schedule: "0 4 * * *"          # Daily smoke test at 04:00
-rbac_export_schedule: "5 4 * * MON"  # Weekly RBAC export (every Monday 04:05)
-keep_last_dumps: 7                   # Number of .dump files to keep on NFS
-keep_last_markers: 6                 # Number of marker files to keep
+# Crony
+dump_schedule: "0 3 * * *"         
+restorepoint_schedule: "0 * * * *"  
+cleanup_schedule: "30 3 * * *"      
+smoke_schedule: "0 4 * * *"
+rbac_export_schedule: "5 4 * * MON"
+keep_last_dumps: 7                  
+keep_last_markers: 6
 
-# Resource names (used for CronJobs and K8s objects)
-dump_cj_name: "neon-dump-nightly"    # Name of CronJob that performs DB dumps
-restore_cj_name: "neon-hourly-marker"# Name of CronJob that creates hourly markers
-cleanup_cj_name: "cleanup-backups"   # Name of CronJob that cleans up old backups
 
-# Secret holding credentials (Neon/Postgres connection string, etc.)
+# Nazwy zasobów
+dump_cj_name: "neon-dump-nightly"
+restore_cj_name: "neon-hourly-marker"
+cleanup_cj_name: "cleanup-backups"
+
+# Sekret
 secret_name: "neon-secrets"
 
-# Container images used in backup jobs
-img_pg: "postgres:17-alpine"         # Image used for pg_dump/restore
-img_curl: "curlimages/curl:8.8.0"    # Image used for curl-based jobs (e.g., smoke tests)
-img_alpine: "alpine:3.20"            # Lightweight Alpine image for scripting/utility jobs
+# Obrazy
+img_pg: "postgres:17-alpine"
+img_curl: "curlimages/curl:8.8.0"
+img_alpine: "alpine:3.20"

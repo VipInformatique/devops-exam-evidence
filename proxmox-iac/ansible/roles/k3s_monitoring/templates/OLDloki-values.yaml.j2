@@ -1,0 +1,71 @@
+# templates/loki-values.yaml.j2
+deploymentMode: SingleBinary
+
+lokiCanary:
+  enabled: false
+
+test:
+  enabled: false
+
+monitoring:
+  selfMonitoring:
+    enabled: false
+
+lokiCanary:
+  enabled: false
+
+read: { replicas: 0 }
+write: { replicas: 0 }
+backend: { replicas: 0 }
+gateway: { enabled: false }
+
+loki:
+  auth_enabled: false
+  storage:
+    type: filesystem
+  commonConfig:
+    replication_factor: 1
+  limits_config:
+    retention_period: {{ loki_retention_period | default('21d') }}
+  schemaConfig:
+    configs:
+      - from: "2025-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: NotIn
+              values: {{ master_nodes | default(['k8s-master-01', 'k8s-master-02', 'k8s-master-03']) }}
+
+persistence:
+  enabled: true
+  storageClassName: {{ nfs_storage_class | default('nfs-client') }}
+  size: 10Gi
+
+chunksCache: { enabled: false }
+resultsCache: { enabled: false }
+memberlist:
+  enabled: false
+
+service:
+  publishNotReadyAddresses: true
+  join_members: []
+
+singleBinary:
+  service:
+    type: LoadBalancer
+    loadBalancerIP: {{ metallb_shared_ip | default('192.168.88.14') }}
+    annotations:
+      metallb.universe.tf/allow-shared-ip: {{ metallb_shared_annotation | default('monitoring') }}
+    port:
+      http: 3100
+      grpc: 9095

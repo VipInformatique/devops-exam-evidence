@@ -1,6 +1,5 @@
 ---
-# tasks file for proxmox_cluster
-# Ten skrypt w bezpieczny sposób tworzy klaster lub weryfikuje jego istnienie.
+# Creation claster Proxmox VE
 
 - name: Check Proxmox cluster status on all nodes
   ansible.builtin.command: pvecm status
@@ -20,7 +19,6 @@
     - proxmox_cluster
 
 - name: Join secondary nodes to the cluster if they are not members
-  
   ansible.builtin.command: pvecm add {{ proxmox_primary_node }}
   when:
     - inventory_hostname != proxmox_primary_node

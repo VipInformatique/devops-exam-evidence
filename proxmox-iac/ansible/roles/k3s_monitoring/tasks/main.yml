@@ -9,7 +9,7 @@
     state: present
     kubeconfig: "{{ k3s_kubeconfig }}"
 
-- name: Install Kube Prometheus Stack (flat configuration)
+- name: Zainstaluj Kube Prometheus Stack (kompletna konfiguracja)
   kubernetes.core.helm:
     name: kube-prometheus-stack
     chart_ref: prometheus-community/kube-prometheus-stack
@@ -42,16 +42,13 @@
                 - targets: ["192.168.100.2:9100", "192.168.100.3:9100", "192.168.100.4:9100"]
         service:
           type: LoadBalancer
-          loadBalancerIP: 192.168.88.14
+          loadBalancerIP: 192.168.88.14  # <-- Tylko ten serwis "rezerwuje" statyczny IP
           loadBalancerSourceRanges:
-           - 10.10.10.0/24  
+           - 10.10.10.0/24
           annotations:
-            metallb.universe.tf/allow-shared-ip: monitoring
+            metallb.universe.tf/allow-shared-ip: monitoring # Klucz współdzielenia
           port: 9090
-      
-      # =============================================================
-      # ============== GRAFANA CONFIGURATION ========================
-      # =============================================================
+
       grafana:
         nodeSelector:
           role: worker
@@ -69,7 +66,6 @@
           storageClassName: nfs-client
           accessModes: [ReadWriteOnce]
           size: 2Gi
-
         sidecar:
           dashboards:
             enabled: true
@@ -97,31 +93,31 @@
                 isDefault: false
                 jsonData:
                   maxLines: "1000"
-
         service:
           type: LoadBalancer
-          loadBalancerIP: 192.168.88.14
-          annotations:
-            metallb.universe.tf/allow-shared-ip: monitoring
+          # loadBalancerIP usunięty - dołączy do IP Prometheusa
           loadBalancerSourceRanges:
            - 10.10.10.0/24
+          annotations:
+            metallb.universe.tf/allow-shared-ip: monitoring # Ten sam klucz
           port: 3000
 
       prometheus-node-exporter:
         tolerations:
           - key: "node-role.kubernetes.io/control-plane"
             operator: "Exists"
-      
+
       alertmanager:
+        configSecret: "{{ alertmanager_secret_name }}"  
         alertmanagerSpec:
           nodeSelector:
             role: worker
           containers:
-            - name: alertmanager
-              env:
-                - name: TZ
-                  value: "Europe/Paris" 
-            
+          - name: alertmanager
+            env:
+            - name: TZ
+              value: "Europe/Warsaw"
+
       kube-state-metrics:
         nodeSelector:
           role: worker
@@ -129,12 +125,27 @@
       prometheusOperator:
         nodeSelector:
           role: worker
+          
+      # Konfiguracja wyłączająca zbędne komponenty (przeniesiona z usuniętego taska)
+      kubeControllerManager:
+        enabled: false
+      kubeScheduler:
+        enabled: false
+      kubeProxy:
+        enabled: false
+      kubeEtcd:
+        enabled: false
+      defaultRules:
+        rules:
+          kubeControllerManager: false
+          kubeScheduler: false
+          kubeProxy: false
+          etcd: false
 
     timeout: "15m0s"
     wait: true
 
-
-- name: Install Loki
+- name: Zainstaluj Loki
   kubernetes.core.helm:
     name: loki
     chart_ref: grafana/loki
@@ -177,12 +188,12 @@
           volume_enabled: true
         schemaConfig:
           configs:
-            - from: "2023-01-01"  # changed from 2025 to 2023
+            - from: "2023-01-01"  # ZMIENIONO z 2025 na 2023
               store: tsdb
               object_store: filesystem
               schema: v13
               index:
-                prefix: loki_index_  # changed from index_ to loki_index_
+                prefix: loki_index_  # ZMIENIONO z index_ na loki_index_
                 period: 24h
       persistence:
         enabled: true
@@ -202,7 +213,7 @@
           type: LoadBalancer
           loadBalancerIP: 192.168.88.14
           loadBalancerSourceRanges:
-           - 10.10.10.0/24                       # restricted to VPN
+           - 10.10.10.0/24                       # ogranicz do VPN
           annotations:
             metallb.universe.tf/allow-shared-ip: monitoring
           port: 3100
@@ -210,7 +221,7 @@
     wait: true
 
 
-- name: Install Promtail (inline values)
+- name: Zainstaluj Promtail (wszystko inline - zgodnie z twoimi values)
   kubernetes.core.helm:
     name: promtail
     chart_ref: grafana/promtail
@@ -219,19 +230,32 @@
     kubeconfig: "{{ k3s_kubeconfig }}"
     values:
       resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 300m
-          memory: 256Mi
+        requests: { cpu: 100m, memory: 128Mi }
+        limits:   { cpu: 300m, memory: 256Mi }
       config:
-        logLevel: info
+        logLevel: warn           # było: info — mniej hałasu własnych logów Promtail
         clients:
           - url: http://loki.monitoring.svc:3100/loki/api/v1/push
         snippets:
+          # === DODANE: twarde dropy zanim cokolwiek zrobimy dalej ===
           extraRelabelConfigs:
-            # readable labels from pods
+            # 0) NIE tailuj zakończonych podów (główne źródło "file does not exist")
+            - action: drop
+              source_labels: ['__meta_kubernetes_pod_phase']
+              regex: 'Succeeded|Failed'
+
+            # 0b) (opcjonalnie) wytnij cały namespace sqldump
+            - action: drop
+              source_labels: ['__meta_kubernetes_namespace']
+              regex: 'sqldump'
+
+            # 0c) (opcjonalnie) wytnij job cleanup
+            - action: drop
+              source_labels: ['__meta_kubernetes_pod_label_job_name','__meta_kubernetes_pod_label_job-name']
+              regex: 'neon-marker-cleanup'
+
+            # === Twoje istniejące reguły pozostają ===
+            # Czytelne labele z poda
             - action: replace
               source_labels: ['__meta_kubernetes_pod_label_app']
               target_label: app
@@ -248,7 +272,7 @@
               regex: '(.+)'
               replacement: '$1'
 
-            # fallback for "service"
+            # Fallback dla "service"
             - action: replace
               source_labels: ['service','app']
               target_label: service
@@ -276,59 +300,52 @@
               replacement: '$1'
 
           pipelineStages:
-            # 1) Globally: drop lines consisting only of "pppp..." or "NUMBER ppppp..."
+            # 1) Globalnie: utnij linie będące samym "pppp..." lub "NUMER ppppp..."
             - match:
                 selector: '{namespace=~".+"}'
                 stages:
                   - drop:
                       expression: '^([0-9]{6,}\s+)?[pP]{8,}\s*$'
 
-            # 2) Noise from Loki itself
+            # 2) Szum z samego Lokiego
             - match:
                 selector: '{namespace="monitoring", pod=~"loki-.*", container="loki"}'
                 stages:
                   - drop:
                       expression: 'executing query|starting to tail logs|ended tailing logs|roundtrip\.go:|engine\.go:|metrics\.go:'
 
-            # 3) Noise from Loki plugin in Grafana (optional)
+            # 3) Szum z wtyczki Loki w Grafanie (opcjonalnie)
             - match:
                 selector: '{namespace="monitoring", app_kubernetes_io_name="grafana"}'
                 stages:
                   - drop:
                       expression: 'logger=tsdb\.loki|pluginId=loki|endpoint=queryData'
-                  
     timeout: "5m0s"
     wait: true
 
-- name: Check monitoring pods status
+
+- name: Sprawdź status podów monitoringu
   ansible.builtin.command: kubectl get pods -n monitoring
   environment:
     KUBECONFIG: "{{ k3s_kubeconfig }}"
   register: monitoring_pods
   changed_when: false
 
-- name: Check monitoring services status
+- name: Sprawdź status serwisów monitoringu
   ansible.builtin.command: kubectl get svc -n monitoring
   environment:
     KUBECONFIG: "{{ k3s_kubeconfig }}"
   register: monitoring_services
   changed_when: false
 
-- name: Monitoring deployment summary
+- name: Podsumowanie deploymentu
   ansible.builtin.debug:
     msg:
-      - "=== POD STATUS ==="
+      - "=== STATUS PODÓW ==="
       - "{{ monitoring_pods.stdout_lines }}"
-      - "=== SERVICE STATUS ==="
+      - "=== STATUS SERWISÓW ==="
       - "{{ monitoring_services.stdout_lines }}"
-      - "=== ACCESS ==="
+      - "=== DOSTĘP ==="
       - "Grafana: http://192.168.88.14:3000 (admin/{{ grafana_admin_password }})"
       - "Prometheus: http://192.168.88.14:9090"
       - "Loki: http://192.168.88.14:3100"
-      - "=== DASHBOARDS ==="
-      - "Node Exporter Full (1860): http://192.168.88.14:3000/d/rYdddlPWk"
-      - "Kubernetes Cluster (15202): http://192.168.88.14:3000/d/k8s-cluster"
-      - "=== DATASOURCES ==="
-      - "Prometheus: http://prometheus:9090"
-      - "Loki: http://loki:3100"
-      - "Alertmanager: http://alertmanager:9093"

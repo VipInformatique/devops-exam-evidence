@@ -1,0 +1,66 @@
+---
+- name: "TRAEFIK | Apply default-deny egress"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: traefik-default-deny-egress, namespace: traefik }
+      spec: { podSelector: {}, policyTypes: ["Egress"], egress: [] }
+
+- name: "TRAEFIK | Allow egress to DNS"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: traefik-egress-allow-dns, namespace: traefik }
+      spec:
+        podSelector: {}
+        policyTypes: ["Egress"]
+        egress:
+          - to:
+              - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: kube-system } }
+                podSelector: { matchLabels: { k8s-app: kube-dns } }
+            ports:
+              - { protocol: UDP, port: 53 }
+              - { protocol: TCP, port: 53 }
+
+- name: "TRAEFIK | Allow egress to K8s API and app backends"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: traefik-egress-allow-api-and-apps, namespace: traefik }
+      spec:
+        podSelector: {}
+        policyTypes: ["Egress"]
+        egress:
+          - to: [ { ipBlock: { cidr: "{{ k8s_api_vip }}/32" } } ]
+            ports: [ { protocol: TCP, port: 443 } ]
+          - to:
+              - namespaceSelector:
+                  matchExpressions:
+                    - { key: kubernetes.io/metadata.name, operator: In, values: ["dev","prod"] }
+            ports:
+              - { protocol: TCP, port: 8000 }
+
+- name: "TRAEFIK | Allow egress to ArgoCD"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: traefik-egress-allow-argocd, namespace: traefik }
+      spec:
+        podSelector: {}
+        policyTypes: ["Egress"]
+        egress:
+          - to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: argocd
+            ports:
+              - { protocol: TCP, port: 8080 }
+              - { protocol: TCP, port: 8083 }

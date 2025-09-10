@@ -1,7 +1,7 @@
-# kubeconfig path on Ansible controller
+# kubeconfig on the Ansible controller
 k3s_kubeconfig: "{{ playbook_dir }}/inventory/kubeconfig.yaml"
 
-# Helm version and repo
+# Helm version and repository
 argocd_chart_version: 6.7.14
 argocd_repo_name: argo
 argocd_repo_url: https://argoproj.github.io/argo-helm

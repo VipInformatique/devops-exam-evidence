@@ -1,0 +1,18 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "{{ ns }}-egress-allow-neon-postgres"
+  namespace: "{{ ns }}"
+spec:
+  podSelector:
+    matchLabels:
+      app: "{{ app_label }}"
+  policyTypes: ["Egress"]
+  egress:
+    - ports:
+        - protocol: TCP
+          port: {{ neon_port_local }}
+      # Wstawiamy tutaj gotową, poprawnie sformatowaną listę.
+      # Filtr 'tojson' zapewnia, że formatowanie będzie idealne.
+      to: {{ neon_pg_ip_blocks_local | tojson }}

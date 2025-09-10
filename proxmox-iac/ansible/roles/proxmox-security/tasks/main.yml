@@ -14,7 +14,6 @@
   notify: Restart sshd
   when: ssh_hardening | bool
   
-
 - name: 1. Install fail2ban package
   ansible.builtin.apt:
     name: fail2ban

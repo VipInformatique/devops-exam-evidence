@@ -4,7 +4,7 @@
 # SSH access – local controller (WSL)
 ###############################################################################
 
-# 1. Ensure ~/.ssh directory exists
+# 1️⃣  Ensure ~/.ssh directory exists
 - name: Ensure ~/.ssh directory exists on controller
   file:
     path: "{{ lookup('env','HOME') }}/.ssh"
@@ -14,7 +14,7 @@
   become: false
   run_once: true
 
-# 2. Check if key already exists
+# 2️⃣  Check if key already exists
 - name: Stat id_proxmox_ansible on controller
   ansible.builtin.stat:
     path: "{{ lookup('env','HOME') }}/.ssh/id_proxmox_ansible"
@@ -23,18 +23,18 @@
   run_once: true
   register: key_stat
 
-# 3. Generate keypair only if missing
+# 3️⃣  Generate keypair only if file is missing
 - name: Generate id_proxmox_ansible keypair if missing
   community.crypto.openssh_keypair:
     path: "{{ lookup('env','HOME') }}/.ssh/id_proxmox_ansible"
     type: ed25519
     comment: "ansible@wsl"
-  when: not key_stat.stat.exists          # condition!
+  when: not key_stat.stat.exists          # ← condition!
   delegate_to: localhost
   become: false
   run_once: true
 
-# 4. Copy public key to Proxmox hosts
+# 4️⃣  Copy public key to Proxmox hosts
 - name: Authorize Ansible key for devistor
   ansible.builtin.authorized_key:
     user: devistor

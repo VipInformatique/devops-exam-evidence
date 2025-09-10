@@ -1,0 +1,92 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: devistor-latency-recordings
+  namespace: {{ monitoring_ns }}
+  labels:
+    managed-by: devistor
+    release: {{ kps_release }}
+spec:
+  groups:
+  - name: devistor-latency
+    interval: 30s
+    rules:
+    # --- 0) RPS total i "good" (≤300 ms) z histogramu ---
+    - record: devistor:http_total_rps_5m
+      expr: |
+        sum by (env, job) (
+          label_replace(
+            rate(http_request_duration_seconds_count{route!~"/(metrics|health)"}[5m]),
+            "env", "$1", "namespace", "devistor-(dev|prod)"
+          )
+        )
+
+    - record: devistor:http_good_rps_5m
+      expr: |
+        sum by (env, job) (
+          label_replace(
+            rate(http_request_duration_seconds_bucket{route!~"/(metrics|health)", le="0.3"}[5m]),
+            "env", "$1", "namespace", "devistor-(dev|prod)"
+          )
+        )
+
+    # --- 1) Error ratio (>300 ms) 5m ---
+    - record: devistor:latency_error_ratio_5m
+      expr: |
+        1 - (devistor:http_good_rps_5m / clamp_min(devistor:http_total_rps_5m, 1))
+        or on (env, job) vector(0)
+
+    # --- 2) To samo liczone na oknach źródłowych 1h / 6h (do burn-rate) ---
+    - record: devistor:http_total_rps_1h
+      expr: |
+        sum by (env, job) (
+          label_replace(
+            rate(http_request_duration_seconds_count{route!~"/(metrics|health)"}[1h]),
+            "env", "$1", "namespace", "devistor-(dev|prod)"
+          )
+        )
+
+    - record: devistor:http_good_rps_1h
+      expr: |
+        sum by (env, job) (
+          label_replace(
+            rate(http_request_duration_seconds_bucket{route!~"/(metrics|health)", le="0.3"}[1h]),
+            "env", "$1", "namespace", "devistor-(dev|prod)"
+          )
+        )
+
+    - record: devistor:latency_error_ratio_1h
+      expr: |
+        1 - (devistor:http_good_rps_1h / clamp_min(devistor:http_total_rps_1h, 1))
+        or on (env, job) vector(0)
+
+    - record: devistor:http_total_rps_6h
+      expr: |
+        sum by (env, job) (
+          label_replace(
+            rate(http_request_duration_seconds_count{route!~"/(metrics|health)"}[6h]),
+            "env", "$1", "namespace", "devistor-(dev|prod)"
+          )
+        )
+
+    - record: devistor:http_good_rps_6h
+      expr: |
+        sum by (env, job) (
+          label_replace(
+            rate(http_request_duration_seconds_bucket{route!~"/(metrics|health)", le="0.3"}[6h]),
+            "env", "$1", "namespace", "devistor-(dev|prod)"
+          )
+        )
+
+    - record: devistor:latency_error_ratio_6h
+      expr: |
+        1 - (devistor:http_good_rps_6h / clamp_min(devistor:http_total_rps_6h, 1))
+        or on (env, job) vector(0)
+
+    # --- 3) Burn-rate dla SLO=95% (budżet błędu = 5%) ---
+    - record: slo:devistor:latency:error_budget_burn_1h
+      expr: devistor:latency_error_ratio_1h / 0.05
+
+    - record: slo:devistor:latency:error_budget_burn_6h
+      expr: devistor:latency_error_ratio_6h / 0.05
+

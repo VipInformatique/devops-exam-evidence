@@ -1,0 +1,16 @@
+k3s_metrics_namespace: "kube-system"
+
+k3s_master_endpoints: "{{ groups['k3s_masters'] | map('extract', hostvars, ['ansible_host']) | list }}"
+k3s_allnode_endpoints: "{{ groups['k3s_cluster'] | map('extract', hostvars, ['ansible_host']) | list }}"
+
+k3s_svc_scheduler: "kube-scheduler-metrics"
+k3s_svc_controllermanager: "kube-controller-manager-metrics"
+k3s_svc_kubeproxy: "kube-proxy-metrics"
+
+k3s_metrics_label_key: "k3s-metrics"
+k3s_metrics_label_val: "true"        
+
+kps_release_label: "release"
+kps_release_name: "kube-prometheus-stack"
+
+kps_namespace: "monitoring"
